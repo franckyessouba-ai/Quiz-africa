@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+    /* Original deep African Arena palette */
+    --qa-bg: #0A100D;
+    --qa-header-bg: rgba(10, 16, 13, 0.92);
+    --qa-card: #121C16;
+    --qa-card-alt: #16231B;
+    --qa-inset: #1A271F;
+    --qa-text: #FFFFFF;
+    --qa-text-soft: #E4EEE8;
+    --qa-muted: #9EB5A7;
+    --qa-border: rgba(255, 255, 255, 0.12);
+    --qa-border-strong: rgba(255, 255, 255, 0.24);
+    --qa-gold-text: #F5B700;
+    --qa-green-text: #22C55E;
+    --qa-blue-text: #38BDF8;
+    --qa-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #0A100D;
+    color: #FFFFFF;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono-num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.africa-arena-bg {
+  background-color: #0A100D;
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(0, 158, 73, 0.15) 0%, transparent 42%),
+    radial-gradient(circle at 85% 15%, rgba(245, 183, 0, 0.11) 0%, transparent 38%),
+    radial-gradient(circle at 50% 95%, rgba(0, 114, 206, 0.10) 0%, transparent 45%);
+}
+
+/* Gabon tri-color ribbon hairline (vert, jaune, bleu) */
+.panafrica-stripe {
+  background: linear-gradient(90deg, #009E49 0%, #009E49 33.33%, #F5B700 33.33%, #F5B700 66.66%, #0072CE 66.66%, #0072CE 100%);
+}
+
+/* Animated highlight sweep for leaderboard player row */
+@keyframes qaRankShimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(140%);
+  }
+}
+
+.qa-rank-shimmer {
+  animation: qaRankShimmer 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

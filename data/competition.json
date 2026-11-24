@@ -1,0 +1,21 @@
+{
+  "weekKey": "2026-W48",
+  "players": [
+    {
+      "id": "qa_83b7e500-da6e-416d-a211-1c7e828caa8f",
+      "name": "Francky",
+      "countryCode": "GA",
+      "avatar": "panther",
+      "bestGameScore": 2284,
+      "totalScore": 19998,
+      "weeklyScore": 19998,
+      "streak": 1,
+      "updatedAt": 1795514098591,
+      "diasporaScore": 0,
+      "bestDiasporaScore": 0
+    }
+  ],
+  "processedSubmissionIds": [
+    "sub_d603802f-2b26-4864-88b8-0901e38c18f5"
+  ]
+}

@@ -1,0 +1,1068 @@
+{
+  "byDate": {
+    "2026-11-24": [
+      {
+        "id": "news_cul_02",
+        "countryCode": "NG",
+        "category": "geography",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quelle méga-raffinerie inaugurée près de Lagos transforme l’économie énergétique de l’Afrique de l’Ouest ?",
+          "en": "Which mega-refinery opened near Lagos is transforming West Africa’s energy landscape?",
+          "es": "¿Qué megarrefinería inaugurada cerca de Lagos transforma el panorama energético de África Occidental?",
+          "pt": "Qual megarrefinaria inaugurada perto de Lagos transforma o setor energético da África Ocidental?",
+          "ar": "ما اسم المصفاة الضخمة التي افتُتحت قرب لاغوس وتغير خريطة الطاقة في غرب أفريقيا؟"
+        },
+        "options": [
+          {
+            "fr": "La raffinerie de Mombasa",
+            "en": "Mombasa Refinery",
+            "es": "Refinería de Mombasa",
+            "pt": "Refinaria de Mombasa",
+            "ar": "مصفاة مومباسا"
+          },
+          {
+            "fr": "La raffinerie de Port-Gentil",
+            "en": "Port-Gentil Refinery",
+            "es": "Refinería de Port-Gentil",
+            "pt": "Refinaria de Port-Gentil",
+            "ar": "مصفاة بورت جنتيل"
+          },
+          {
+            "fr": "La raffinerie de Tema",
+            "en": "Tema Refinery",
+            "es": "Refinería de Tema",
+            "pt": "Refinaria de Tema",
+            "ar": "مصفاة تيما"
+          },
+          {
+            "fr": "La raffinerie Dangote",
+            "en": "Dangote Refinery",
+            "es": "Refinería Dangote",
+            "pt": "Refinaria Dangote",
+            "ar": "مصفاة دانغوتي"
+          }
+        ],
+        "correctIndex": 3,
+        "explanation": {
+          "fr": "Construite à Lekki par le groupe nigérian Aliko Dangote, c’est la plus grande raffinerie à train unique du monde.",
+          "en": "Built in Lekki by Nigerian industrialist Aliko Dangote, it is the world’s largest single-train refinery.",
+          "es": "Construida en Lekki por el grupo de Aliko Dangote, es la mayor refinería de un solo tren del mundo.",
+          "pt": "Construída em Lekki pelo grupo de Aliko Dangote, é a maior refinaria de trem único do mundo.",
+          "ar": "بُنيت مصفاة دانغوتي في منطقة ليكي بلاغوس وتُعد أكبر مصفاة من نوعها على مستوى العالم."
+        },
+        "newsDate": "2026-11-24"
+      },
+      {
+        "id": "news_cul_03",
+        "countryCode": "AO",
+        "category": "geography",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel grand corridor ferroviaire relie désormais le port atlantique de l’Angola aux mines de cuivre de la RD Congo et de la Zambie ?",
+          "en": "Which major railway corridor links Angola’s Atlantic port to copper belts in DR Congo and Zambia?",
+          "es": "¿Qué gran corredor ferroviario conecta el puerto atlántico de Angola con la RD del Congo y Zambia?",
+          "pt": "Qual grande corredor ferroviário liga o porto atlântico de Angola à RD do Congo e Zâmbia?",
+          "ar": "أي ممر سككي استراتيجي يربط ميناء أنغولا الأطلسي بمناجم الكونغو الديمقراطية وزامبيا؟"
+        },
+        "options": [
+          {
+            "fr": "Le corridor du Limpopo",
+            "en": "Limpopo Corridor",
+            "es": "Corredor del Limpopo",
+            "pt": "Corredor do Limpopo",
+            "ar": "ممر ليمبوبو"
+          },
+          {
+            "fr": "Le corridor de Beira",
+            "en": "Beira Corridor",
+            "es": "Corredor de Beira",
+            "pt": "Corredor da Beira",
+            "ar": "ممر بيرا"
+          },
+          {
+            "fr": "Le corridor de Lobito",
+            "en": "The Lobito Corridor",
+            "es": "El Corredor de Lobito",
+            "pt": "O Corredor do Lobito",
+            "ar": "ممر لوبيتو"
+          },
+          {
+            "fr": "Le corridor du Tanganyika",
+            "en": "Tanganyika Corridor",
+            "es": "Corredor de Tanganica",
+            "pt": "Corredor de Tanganica",
+            "ar": "ممر تنجانيقا"
+          }
+        ],
+        "correctIndex": 2,
+        "explanation": {
+          "fr": "Le corridor ferroviaire de Lobito réduit à quelques jours le transport des minerais stratégiques d’Afrique centrale vers l’Atlantique.",
+          "en": "The Lobito Corridor dramatically cuts transit times from Central Africa’s copperbelt to the Atlantic coast.",
+          "es": "El Corredor de Lobito acelera la conexión ferroviaria entre África Central y el Atlántico.",
+          "pt": "O Corredor do Lobito conecta por ferrovia o cinturão mineral da África Central ao Atlântico.",
+          "ar": "يختصر ممر لوبيتو زمن نقل المعادن الاستراتيجية من قلب أفريقيا إلى المحيط الأطلسي."
+        },
+        "newsDate": "2026-11-24"
+      },
+      {
+        "id": "news_cul_04",
+        "countryCode": "BF",
+        "category": "culture",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Dans quelle ville s’est tenue en février-mars 2025 la 29e édition du FESPACO, le plus grand festival de cinéma d’Afrique ?",
+          "en": "Which city hosted the 29th edition of FESPACO, Africa’s largest film festival, in early 2025?",
+          "es": "¿Qué ciudad acogió a inicios de 2025 la 29.ª edición del FESPACO, el mayor festival de cine de África?",
+          "pt": "Qual cidade sediou no início de 2025 a 29.ª edição do FESPACO, o maior festival de cinema da África?",
+          "ar": "في أي مدينة أُقيمت مطلع 2025 الدورة التاسعة والعشرون لمهرجان فيسباكو للسينما الأفريقية؟"
+        },
+        "options": [
+          {
+            "fr": "Carthage (Tunisie)",
+            "en": "Carthage (Tunisia)",
+            "es": "Cartago (Túnez)",
+            "pt": "Cartago (Tunísia)",
+            "ar": "قرطاج (تونس)"
+          },
+          {
+            "fr": "Ouagadougou (Burkina Faso)",
+            "en": "Ouagadougou (Burkina Faso)",
+            "es": "Uagadugú (Burkina Faso)",
+            "pt": "Ouagadougou (Burkina Faso)",
+            "ar": "واغادوغو (بوركينا فاسو)"
+          },
+          {
+            "fr": "Marrakech (Maroc)",
+            "en": "Marrakech (Morocco)",
+            "es": "Marrakech (Marruecos)",
+            "pt": "Marrakech (Marrocos)",
+            "ar": "مراكش (المغرب)"
+          },
+          {
+            "fr": "Dakar (Sénégal)",
+            "en": "Dakar (Senegal)",
+            "es": "Dakar (Senegal)",
+            "pt": "Dacar (Senegal)",
+            "ar": "داكار (السنغال)"
+          }
+        ],
+        "correctIndex": 1,
+        "explanation": {
+          "fr": "Depuis 1969, Ouagadougou réunit tous les deux ans les cinéastes du continent autour de l’Étalon d’or de Yennenga.",
+          "en": "Since 1969, Ouagadougou has gathered African filmmakers every two years to compete for the Étalon d’or de Yennenga.",
+          "es": "Desde 1969, Uagadugú reúne a los cineastas africanos cada dos años por el Étalon d’or.",
+          "pt": "Desde 1969, Ouagadougou reúne cineastas de toda a África em torno do troféu Étalon d’or.",
+          "ar": "منذ عام 1969 تجمع واغادوغو صناع السينما الأفارقة كل عامين للتنافس على جائزة الحصان الذهبي."
+        },
+        "newsDate": "2026-11-24"
+      },
+      {
+        "id": "news_cul_05",
+        "countryCode": "BJ",
+        "category": "culture",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel pays d’Afrique de l’Ouest a exposé à Cotonou et Abomey ses 26 trésors royaux restitués tout en construisant un grand musée des Rois d’Abomey ?",
+          "en": "Which West African country showcased 26 returned royal treasures in Cotonou while building a new museum of its ancient kings?",
+          "es": "¿Qué país de África Occidental exhibió en Cotonú 26 tesoros reales restituidos mientras construye nuevos museos?",
+          "pt": "Qual país da África Ocidental exibiu em Cotonou 26 tesouros reais restituídos e ergue novos museus?",
+          "ar": "أي دولة في غرب أفريقيا عرضت كنوزها الملكية الـ26 المستعادة في كوتونو بالتزامن مع بناء متاحف تراثية كبرى؟"
+        },
+        "options": [
+          {
+            "fr": "Le Bénin",
+            "en": "Benin",
+            "es": "Benín",
+            "pt": "Benim",
+            "ar": "بنين"
+          },
+          {
+            "fr": "Le Togo",
+            "en": "Togo",
+            "es": "Togo",
+            "pt": "Togo",
+            "ar": "توغو"
+          },
+          {
+            "fr": "Le Niger",
+            "en": "Niger",
+            "es": "Níger",
+            "pt": "Níger",
+            "ar": "النيجر"
+          },
+          {
+            "fr": "La Guinée",
+            "en": "Guinea",
+            "es": "Guinea",
+            "pt": "Guiné",
+            "ar": "غينيا"
+          }
+        ],
+        "correctIndex": 0,
+        "explanation": {
+          "fr": "Le Bénin a fait du retour de son patrimoine culturel et du tourisme historique autour de Ouidah et d’Abomey un moteur de rayonnement.",
+          "en": "Benin has turned cultural restitution and heritage museums in Abomey and Ouidah into a Continental model.",
+          "es": "Benín ha convertido la restitución cultural y los museos de Abomey y Ouidah en un referente africano.",
+          "pt": "O Benim transformou a restituição de seu patrimônio e os museus de Abomey e Ouidah em referência.",
+          "ar": "جعلت بنين استعادة تراثها وبناء متاحف أبومي وأويدا نموذجاً أفريقياً للنهضة الثقافية."
+        },
+        "newsDate": "2026-11-24"
+      },
+      {
+        "id": "news_cul_06",
+        "countryCode": "RW",
+        "category": "geography",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quelle capitale africaine déploie la « Kigali Innovation City » et un réseau national de livraison médicale par drones ?",
+          "en": "Which African capital is home to Kigali Innovation City and a pioneering nationwide medical drone delivery network?",
+          "es": "¿Qué capital africana impulsa Kigali Innovation City y una red pionera de drones médicos?",
+          "pt": "Qual capital africana abriga a Kigali Innovation City e uma rede pioneira de drones médicos?",
+          "ar": "أي عاصمة أفريقية تحتضن مدينة الابتكار وشبكة رائدة لتوصيل الإمدادات الطبية بالطائرات المسيرة؟"
+        },
+        "options": [
+          {
+            "fr": "Kampala (Ouganda)",
+            "en": "Kampala (Uganda)",
+            "es": "Kampala (Uganda)",
+            "pt": "Campala (Uganda)",
+            "ar": "كمبالا (أوغندا)"
+          },
+          {
+            "fr": "Kigali (Rwanda)",
+            "en": "Kigali (Rwanda)",
+            "es": "Kigali (Ruanda)",
+            "pt": "Kigali (Ruanda)",
+            "ar": "كيغالي (رواندا)"
+          },
+          {
+            "fr": "Gaborone (Botswana)",
+            "en": "Gaborone (Botswana)",
+            "es": "Gaborone (Botsuana)",
+            "pt": "Gaborone (Botsuana)",
+            "ar": "غابورون (بوتسوانا)"
+          },
+          {
+            "fr": "Addis-Abeba (Éthiopie)",
+            "en": "Addis Ababa (Ethiopia)",
+            "es": "Adís Abeba (Etiopía)",
+            "pt": "Adis Abeba (Etiópia)",
+            "ar": "أديس أبابا (إثيوبيا)"
+          }
+        ],
+        "correctIndex": 1,
+        "explanation": {
+          "fr": "Le Rwanda est devenu une référence africaine en matière de santé numérique, de villes propres et d’innovation technologique.",
+          "en": "Rwanda’s Kigali is widely recognized across Africa as a hub for green tech and medical drone logistics.",
+          "es": "Kigali se ha consolidado como un polo africano de innovación tecnológica y logística médica con drones.",
+          "pt": "Kigali consolidou-se como polo africano de tecnologia verde e entregas médicas com drones.",
+          "ar": "أصبحت كيغالي نموذجاً أفريقياً رائداً في التكنولوجيا النظيفة والابتكار الصحي."
+        },
+        "newsDate": "2026-11-24"
+      },
+      {
+        "id": "news_cul_07",
+        "countryCode": "MA",
+        "category": "geography",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Comment s’appelle la ligne ferroviaire à grande vitesse reliant Tanger à Casablanca, toujours unique sur le continent africain ?",
+          "en": "What is the name of the high-speed rail line linking Tangier to Casablanca, Africa’s first?",
+          "es": "¿Cómo se llama el tren de alta velocidad que conecta Tánger con Casablanca, el primero de África?",
+          "pt": "Qual é o nome do trem de alta velocidade que liga Tânger a Casablanca, o primeiro da África?",
+          "ar": "ما اسم القطار فائق السرعة الذي يربط طنجة بالدار البيضاء كأول قطار فائق السرعة في أفريقيا؟"
+        },
+        "options": [
+          {
+            "fr": "Tazara Express",
+            "en": "Tazara Express",
+            "es": "Tazara Express",
+            "pt": "Tazara Express",
+            "ar": "تازارا إكسبرس"
+          },
+          {
+            "fr": "Gautrain",
+            "en": "Gautrain",
+            "es": "Gautrain",
+            "pt": "Gautrain",
+            "ar": "غوترين"
+          },
+          {
+            "fr": "Madaraka Express",
+            "en": "Madaraka Express",
+            "es": "Madaraka Express",
+            "pt": "Madaraka Express",
+            "ar": "ماداراكا إكسبرس"
+          },
+          {
+            "fr": "Al Boraq",
+            "en": "Al Boraq",
+            "es": "Al Boraq",
+            "pt": "Al Boraq",
+            "ar": "البراق"
+          }
+        ],
+        "correctIndex": 3,
+        "explanation": {
+          "fr": "Al Boraq atteint 320 km/h et est en cours d’extension vers Marrakech en vue de la Coupe du Monde 2030 co-organisée par le Maroc.",
+          "en": "Al Boraq reaches 320 km/h and is being extended south toward Marrakech ahead of 2030.",
+          "es": "Al Boraq alcanza 320 km/h y se amplía hacia Marrakech de cara a 2030.",
+          "pt": "O Al Boraq atinge 320 km/h e está sendo estendido até Marrakech para 2030.",
+          "ar": "تبلغ سرعة قطار البراق 320 كم/س ويجري تمديده نحو مراكش استعداداً لاستحقاقات 2030."
+        },
+        "newsDate": "2026-11-24"
+      },
+      {
+        "id": "news_cul_08",
+        "countryCode": "SN",
+        "category": "culture",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel pays africain a accueilli les Jeux Olympiques de la Jeunesse d’été (Dakar 2026), les tout premiers Jeux olympiques sur le sol africain ?",
+          "en": "Which African nation hosts the Dakar 2026 Summer Youth Olympic Games, the first Olympic event ever held in Africa?",
+          "es": "¿Qué país africano acoge los Juegos Olímpicos de la Juventud Dakar 2026, primera cita olímpica en África?",
+          "pt": "Qual país africano sedia os Jogos Olímpicos da Juventude Dacar 2026, primeiro evento olímpico na África?",
+          "ar": "أي دولة أفريقية تستضيف دورة الألعاب الأولمبية للشباب 2026 كأول حدث أولمبي في تاريخ القارة الأفريقية؟"
+        },
+        "options": [
+          {
+            "fr": "Le Sénégal",
+            "en": "Senegal",
+            "es": "Senegal",
+            "pt": "Senegal",
+            "ar": "السنغال"
+          },
+          {
+            "fr": "La Côte d’Ivoire",
+            "en": "Côte d’Ivoire",
+            "es": "Costa de Marfil",
+            "pt": "Costa do Marfim",
+            "ar": "كوت ديفوار"
+          },
+          {
+            "fr": "L’Afrique du Sud",
+            "en": "South Africa",
+            "es": "Sudáfrica",
+            "pt": "África do Sul",
+            "ar": "جنوب أفريقيا"
+          },
+          {
+            "fr": "Le Kenya",
+            "en": "Kenya",
+            "es": "Kenia",
+            "pt": "Quênia",
+            "ar": "كينيا"
+          }
+        ],
+        "correctIndex": 0,
+        "explanation": {
+          "fr": "Avec le slogan « L’Afrique accueille, Dakar célèbre », le Sénégal fait entrer le continent africain dans l’histoire olympique.",
+          "en": "With Dakar, Diamniadio, and Saly as host hubs, Senegal marks Africa’s historic Olympic debut.",
+          "es": "Con Dakar, Diamniadio y Saly como sedes, Senegal marca el debut olímpico de África.",
+          "pt": "Com Dacar, Diamniadio e Saly como sedes, o Senegal marca a estreia olímpica da África.",
+          "ar": "تستضيف داكار وديامنياديو وسالي في السنغال أول دورة أولمبية في تاريخ أفريقيا."
+        },
+        "newsDate": "2026-11-24"
+      },
+      {
+        "id": "news_cul_09",
+        "countryCode": "ET",
+        "category": "geography",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quelle méga-centrale hydroélectrique sur le Nil Bleu est devenue le plus grand barrage d’Afrique ?",
+          "en": "Which mega hydroelectric project on the Blue Nile has become Africa’s largest dam?",
+          "es": "¿Qué mega central hidroeléctrica sobre el Nilo Azul se ha convertido en la mayor presa de África?",
+          "pt": "Qual megacentral hidrelétrica no Nilo Azul tornou-se a maior barragem da África?",
+          "ar": "ما اسم السد الكهرومائي الضخم على النيل الأزرق الذي يُعد الأكبر في أفريقيا؟"
+        },
+        "options": [
+          {
+            "fr": "Le Barrage d’Akosombo",
+            "en": "Akosombo Dam",
+            "es": "Presa de Akosombo",
+            "pt": "Barragem de Akosombo",
+            "ar": "سد أكوسومبو"
+          },
+          {
+            "fr": "Le Barrage d’Inga III",
+            "en": "Inga III Dam",
+            "es": "Presa de Inga III",
+            "pt": "Barragem de Inga III",
+            "ar": "سد إنغا 3"
+          },
+          {
+            "fr": "Le Grand Barrage de la Renaissance (GERD)",
+            "en": "Grand Ethiopian Renaissance Dam (GERD)",
+            "es": "Gran Presa del Renacimiento Etíope (GERD)",
+            "pt": "Grande Barragem da Renascença Etíope (GERD)",
+            "ar": "سد النهضة الإثيوبي الكبير"
+          },
+          {
+            "fr": "Le Barrage de Kariba",
+            "en": "Kariba Dam",
+            "es": "Presa de Kariba",
+            "pt": "Barragem de Kariba",
+            "ar": "سد كاريبا"
+          }
+        ],
+        "correctIndex": 2,
+        "explanation": {
+          "fr": "Situé dans la région du Benishangul-Gumuz en Éthiopie, le GERD a dépassé les 5 000 MW de capacité installée.",
+          "en": "Located in Ethiopia’s Benishangul-Gumuz region, the GERD is Africa’s largest hydroelectric power plant.",
+          "es": "Ubicada en Etiopía, la GERD es la mayor central hidroeléctrica de todo el continente africano.",
+          "pt": "Localizada na Etiópia, a GERD é a maior usina hidrelétrica da África.",
+          "ar": "يقع سد النهضة في إقليم بني شنقول بإثيوبيا ويُعد أكبر محطة كهرومائية في القارة."
+        },
+        "newsDate": "2026-11-24"
+      },
+      {
+        "id": "news_cul_10",
+        "countryCode": "KE",
+        "category": "geography",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel célèbre service financier mobile né au Kenya reste le moteur de l’inclusion bancaire en Afrique de l’Est ?",
+          "en": "Which famous mobile money service pioneered in Kenya continues to drive financial inclusion across East Africa?",
+          "es": "¿Qué famoso servicio de dinero móvil nacido en Kenia sigue impulsando la inclusión financiera en África Oriental?",
+          "pt": "Qual famoso serviço de dinheiro móvel nascido no Quênia impulsiona a inclusão financeira na África Oriental?",
+          "ar": "ما خدمة الدفع عبر الهاتف المحمول الشهيرة التي انطلقت من كينيا وتقود الشمول المالي في شرق أفريقيا؟"
+        },
+        "options": [
+          {
+            "fr": "Wave",
+            "en": "Wave",
+            "es": "Wave",
+            "pt": "Wave",
+            "ar": "ويف (Wave)"
+          },
+          {
+            "fr": "M-Pesa",
+            "en": "M-Pesa",
+            "es": "M-Pesa",
+            "pt": "M-Pesa",
+            "ar": "إم-بيسا (M-Pesa)"
+          },
+          {
+            "fr": "Ecocash",
+            "en": "EcoCash",
+            "es": "EcoCash",
+            "pt": "EcoCash",
+            "ar": "إيكوكاش (EcoCash)"
+          },
+          {
+            "fr": "MoMo",
+            "en": "MoMo",
+            "es": "MoMo",
+            "pt": "MoMo",
+            "ar": "مومو (MoMo)"
+          }
+        ],
+        "correctIndex": 1,
+        "explanation": {
+          "fr": "Lancé à Nairobi, M-Pesa (où « Pesa » signifie argent en swahili) traite des milliards de transactions africaines.",
+          "en": "Launched in Nairobi (\"Pesa\" means money in Swahili), M-Pesa transformed mobile banking across Africa.",
+          "es": "Lanzado en Nairobi (\"Pesa\" significa dinero en suajili), M-Pesa revolucionó las finanzas africanas.",
+          "pt": "Lançado em Nairóbi (\"Pesa\" significa dinheiro em suaíli), o M-Pesa revolucionou as finanças na África.",
+          "ar": "انطلقت خدمة M-Pesa من نيروبي (وتعني «بيسا» المال بالسواحيلية) لتحدث ثورة مالية في أفريقيا."
+        },
+        "newsDate": "2026-11-24"
+      },
+      {
+        "id": "news_ppl_01",
+        "countryCode": "SN",
+        "category": "culture",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel célèbre créateur de contenu sénégalo-italien originaire de Dakar est la personnalité la plus suivie au monde sur TikTok ?",
+          "en": "Which Dakar-born digital creator is the most followed personality in the world on TikTok?",
+          "es": "¿Qué creador digital nacido en Dakar es la personalidad con más seguidores en TikTok en el mundo?",
+          "pt": "Qual criador digital nascido em Dacar é a personalidade mais seguida do mundo no TikTok?",
+          "ar": "أي صانع محتوى من مواليد داكار يُعد الشخص الأكثر متابعة على منصة تيك توك عالمياً؟"
+        },
+        "options": [
+          {
+            "fr": "Khaby Lame",
+            "en": "Khaby Lame",
+            "es": "Khaby Lame",
+            "pt": "Khaby Lame",
+            "ar": "خابي لامي"
+          },
+          {
+            "fr": "Tayo Aina",
+            "en": "Tayo Aina",
+            "es": "Tayo Aina",
+            "pt": "Tayo Aina",
+            "ar": "تايو أينا"
+          },
+          {
+            "fr": "Wode Maya",
+            "en": "Wode Maya",
+            "es": "Wode Maya",
+            "pt": "Wode Maya",
+            "ar": "وودي مايا"
+          },
+          {
+            "fr": "Elsa Majimbo",
+            "en": "Elsa Majimbo",
+            "es": "Elsa Majimbo",
+            "pt": "Elsa Majimbo",
+            "ar": "إلسا ماجيمبو"
+          }
+        ],
+        "correctIndex": 0,
+        "explanation": {
+          "fr": "Né à Dakar, Khaby Lame a conquis la planète avec son humour silencieux et ses gestes devenus cultes.",
+          "en": "Born in Dakar, Senegal, Khaby Lame became a global sensation with his silent signature hand gestures.",
+          "es": "Nacido en Dakar, Khaby Lame conquistó el mundo con su humor silencioso.",
+          "pt": "Nascido em Dacar, Khaby Lame conquistou milhões de seguidores com seu humor silencioso.",
+          "ar": "انطلق خابي لامي المولود في داكار ليصبح أشهر صانع محتوى عالمياً بأسلوبه الصامت."
+        },
+        "newsDate": "2026-11-24"
+      }
+    ],
+    "2026-11-23": [
+      {
+        "id": "news_mus_01",
+        "countryCode": "ZA",
+        "category": "culture",
+        "difficulty": 1,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quelle chanteuse sud-africaine a remporté le tout premier Grammy Award de la meilleure performance musicale africaine avec « Water » ?",
+          "en": "Which South African singer won the first-ever Grammy Award for Best African Music Performance with \"Water\"?",
+          "es": "¿Qué cantante sudafricana ganó el primer Grammy a la Mejor Interpretación Musical Africana con \"Water\"?",
+          "pt": "Qual cantora sul-africana venceu o primeiro Grammy de Melhor Performance Musical Africana com \"Water\"?",
+          "ar": "أي مغنية جنوب أفريقية فازت بأول جائزة غرامي لأفضل أداء موسيقي أفريقي عن أغنية «Water»؟"
+        },
+        "options": [
+          {
+            "fr": "Sho Madjozi",
+            "en": "Sho Madjozi",
+            "es": "Sho Madjozi",
+            "pt": "Sho Madjozi",
+            "ar": "شو مادجوزي"
+          },
+          {
+            "fr": "Nomcebo Zikode",
+            "en": "Nomcebo Zikode",
+            "es": "Nomcebo Zikode",
+            "pt": "Nomcebo Zikode",
+            "ar": "نومسيبو زيكودي"
+          },
+          {
+            "fr": "Tyla",
+            "en": "Tyla",
+            "es": "Tyla",
+            "pt": "Tyla",
+            "ar": "تيلا"
+          },
+          {
+            "fr": "Makhadzi",
+            "en": "Makhadzi",
+            "es": "Makhadzi",
+            "pt": "Makhadzi",
+            "ar": "ماخادزي"
+          }
+        ],
+        "correctIndex": 2,
+        "explanation": {
+          "fr": "Originaire de Johannesburg, Tyla a propulsé le son pop-amapiano sur la scène planétaire.",
+          "en": "Johannesburg-born Tyla carried South Africa’s pop-amapiano wave to global acclaim.",
+          "es": "Nacida en Johannesburgo, Tyla llevó el pop-amapiano sudafricano al escenario mundial.",
+          "pt": "Nascida em Joanesburgo, Tyla levou o pop-amapiano sul-africano ao reconhecimento mundial.",
+          "ar": "قادت المغنية الجنوب أفريقية تيلا موجة البوب أمابيانو من جوهانسبرغ إلى العالمية."
+        },
+        "newsDate": "2026-11-23"
+      },
+      {
+        "id": "news_mus_02",
+        "countryCode": "NG",
+        "category": "culture",
+        "difficulty": 1,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quelle artiste nigériane a remporté en février 2025 le Grammy de la meilleure performance musicale africaine avec « Love Me JeJe » ?",
+          "en": "Which Nigerian artist won the 2025 Grammy for Best African Music Performance with \"Love Me JeJe\"?",
+          "es": "¿Qué artista nigeriana ganó el Grammy 2025 a la Mejor Interpretación Musical Africana con \"Love Me JeJe\"?",
+          "pt": "Qual artista nigeriana venceu o Grammy 2025 de Melhor Performance Musical Africana com \"Love Me JeJe\"?",
+          "ar": "أي فنانة نيجيرية فازت بجائزة غرامي 2025 لأفضل أداء موسيقي أفريقي عن أغنية «Love Me JeJe»؟"
+        },
+        "options": [
+          {
+            "fr": "Simi",
+            "en": "Simi",
+            "es": "Simi",
+            "pt": "Simi",
+            "ar": "سيمي"
+          },
+          {
+            "fr": "Tiwa Savage",
+            "en": "Tiwa Savage",
+            "es": "Tiwa Savage",
+            "pt": "Tiwa Savage",
+            "ar": "تيوا سافاج"
+          },
+          {
+            "fr": "Yemi Alade",
+            "en": "Yemi Alade",
+            "es": "Yemi Alade",
+            "pt": "Yemi Alade",
+            "ar": "ييمي ألايد"
+          },
+          {
+            "fr": "Tems",
+            "en": "Tems",
+            "es": "Tems",
+            "pt": "Tems",
+            "ar": "تيمز"
+          }
+        ],
+        "correctIndex": 3,
+        "explanation": {
+          "fr": "Tems rend hommage au classique nigérian de Seyi Sodimu dans « Love Me JeJe », tiré de son album « Born in the Wild ».",
+          "en": "Tems sampled Seyi Sodimu’s 1997 Nigerian classic on \"Love Me JeJe\" from her debut album Born in the Wild.",
+          "es": "Tems homenajeó el clásico nigeriano en \"Love Me JeJe\", de su álbum Born in the Wild.",
+          "pt": "Tems homenageou o clássico nigeriano em \"Love Me JeJe\", do álbum Born in the Wild.",
+          "ar": "استلهمت تيمز أغنيتها من كلاسيكية نيجيرية في ألبومها «Born in the Wild»."
+        },
+        "newsDate": "2026-11-23"
+      },
+      {
+        "id": "news_mus_03",
+        "countryCode": "NG",
+        "category": "culture",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel tube planétaire du jeune chanteur nigérian Rema est devenu la première chanson africaine à franchir le milliard d’écoutes sur Spotify ?",
+          "en": "Which hit by Nigerian singer Rema became the first African song to surpass one billion streams on Spotify?",
+          "es": "¿Qué éxito del cantante nigeriano Rema fue la primera canción africana en superar los mil millones en Spotify?",
+          "pt": "Qual hit do cantor nigeriano Rema foi a primeira música africana a ultrapassar um bilhão no Spotify?",
+          "ar": "أي أغنية للنجم النيجيري ريما أصبحت أول عمل أفريقي يتجاوز مليار استماع على سبوتيفاي؟"
+        },
+        "options": [
+          {
+            "fr": "Unavailable",
+            "en": "Unavailable",
+            "es": "Unavailable",
+            "pt": "Unavailable",
+            "ar": "Unavailable"
+          },
+          {
+            "fr": "Calm Down",
+            "en": "Calm Down",
+            "es": "Calm Down",
+            "pt": "Calm Down",
+            "ar": "Calm Down"
+          },
+          {
+            "fr": "Essence",
+            "en": "Essence",
+            "es": "Essence",
+            "pt": "Essence",
+            "ar": "Essence"
+          },
+          {
+            "fr": "Last Last",
+            "en": "Last Last",
+            "es": "Last Last",
+            "pt": "Last Last",
+            "ar": "Last Last"
+          }
+        ],
+        "correctIndex": 1,
+        "explanation": {
+          "fr": "Originaire de Benin City au Nigeria, Rema a inscrit « Calm Down » comme l’un des plus grands succès de l’Afrobeats.",
+          "en": "Benin City-born Rema turned \"Calm Down\" into a historic milestone for Nigerian Afrobeats.",
+          "es": "Rema, nacido en Benín City (Nigeria), convirtió \"Calm Down\" en un hito histórico del Afrobeats.",
+          "pt": "Nascido em Benin City, Rema transformou \"Calm Down\" em marco histórico do Afrobeats.",
+          "ar": "سجل الفنان النيجيري ريما بأغنية «Calm Down» رقماً تاريخياً غير مسبوق لموسيقى الأفروبيتس."
+        },
+        "newsDate": "2026-11-23"
+      },
+      {
+        "id": "news_mus_04",
+        "countryCode": "CI",
+        "category": "culture",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel titre du groupe ivoirien Magic System est redevenu l’hymne festif incontournable dans les stades lors de la CAN 2023 en Côte d’Ivoire ?",
+          "en": "Which track by Ivorian group Magic System became the festive stadium anthem across AFCON 2023?",
+          "es": "¿Qué tema del grupo marfileño Magic System volvió a sonar en todos los estadios durante la CAN 2023?",
+          "pt": "Qual música do grupo marfinense Magic System virou o hino festivo nos estádios da CAN 2023?",
+          "ar": "أي أغنية لفرقة ماجيك سيستم الإيفوارية أصبحت نشيد الاحتفالات في ملاعب أمم أفريقيا 2023؟"
+        },
+        "options": [
+          {
+            "fr": "Akwaba (hymne officiel CAN 2023)",
+            "en": "Akwaba (Official AFCON 2023 Anthem)",
+            "es": "Akwaba (Himno oficial CAN 2023)",
+            "pt": "Akwaba (Hino oficial CAN 2023)",
+            "ar": "أكوابا (النشيد الرسمي لكان 2023)"
+          },
+          {
+            "fr": "Chérie Coco",
+            "en": "Chérie Coco",
+            "es": "Chérie Coco",
+            "pt": "Chérie Coco",
+            "ar": "شيري كوكو"
+          },
+          {
+            "fr": "Premier Gaou",
+            "en": "Premier Gaou",
+            "es": "Premier Gaou",
+            "pt": "Premier Gaou",
+            "ar": "برومييه غاو"
+          },
+          {
+            "fr": "Bouger Bouger",
+            "en": "Bouger Bouger",
+            "es": "Bouger Bouger",
+            "pt": "Bouger Bouger",
+            "ar": "بوجي بوجي"
+          }
+        ],
+        "correctIndex": 0,
+        "explanation": {
+          "fr": "Interprété avec Yemi Alade et Mohamed Ramadan, « Akwaba » (« Bienvenue » en akan) a fait danser tout le continent.",
+          "en": "Performed with Yemi Alade and Mohamed Ramadan, \"Akwaba\" (\"Welcome\" in Akan) united fans across Africa.",
+          "es": "Interpretado junto a Yemi Alade y Mohamed Ramadan, \"Akwaba\" (\"Bienvenidos\") hizo bailar a todo el continente.",
+          "pt": "Cantada com Yemi Alade e Mohamed Ramadan, \"Akwaba\" (\"Bem-vindos\") embalou toda a África.",
+          "ar": "قدمت الفرقة الأغنية مع ييمي ألايد ومحمد رمضان لتصبح رمزاً للترحيب الأفريقي."
+        },
+        "newsDate": "2026-11-23"
+      },
+      {
+        "id": "news_mus_05",
+        "countryCode": "CD",
+        "category": "culture",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel roi de la rumba congolaise moderne a rempli la U Arena puis organisé de grands concerts humanitaires pour l’Est de la RDC ?",
+          "en": "Which star of modern Congolese rumba headlined major arenas while backing humanitarian causes in eastern DR Congo?",
+          "es": "¿Qué estrella de la rumba congoleña moderna llenó grandes estadios apoyando causas humanitarias en el este de la RDC?",
+          "pt": "Qual astro da rumba congolesa moderna lotou arenas apoiando ações humanitárias no leste da RDC?",
+          "ar": "أي نجم معاصر للرومبا الكونغولية أحيا حفلات كبرى لدعم المبادرات الإنسانية في شرق الكونغو الديمقراطية؟"
+        },
+        "options": [
+          {
+            "fr": "Werrason",
+            "en": "Werrason",
+            "es": "Werrason",
+            "pt": "Werrason",
+            "ar": "ويراسون"
+          },
+          {
+            "fr": "Fally Ipupa",
+            "en": "Fally Ipupa",
+            "es": "Fally Ipupa",
+            "pt": "Fally Ipupa",
+            "ar": "فالي إيبوبا"
+          },
+          {
+            "fr": "JB Mpiana",
+            "en": "JB Mpiana",
+            "es": "JB Mpiana",
+            "pt": "JB Mpiana",
+            "ar": "جي بي مبيانا"
+          },
+          {
+            "fr": "Ferré Gola",
+            "en": "Ferré Gola",
+            "es": "Ferré Gola",
+            "pt": "Ferré Gola",
+            "ar": "فيري غولا"
+          }
+        ],
+        "correctIndex": 1,
+        "explanation": {
+          "fr": "Surnommé « Dicap la Merveille », Fally Ipupa porte la rumba congolaise (classée à l’UNESCO) sur les plus grandes scènes.",
+          "en": "Fally Ipupa continues to take UNESCO-recognized Congolese rumba to global sold-out venues.",
+          "es": "Fally Ipupa lleva la rumba congoleña, patrimonio de la UNESCO, a escenarios de todo el mundo.",
+          "pt": "Fally Ipupa leva a rumba congolesa, patrimônio da UNESCO, aos maiores palcos.",
+          "ar": "يواصل فالي إيبوبا نشر الرومبا الكونغولية المسجلة في اليونسكو عالمياً."
+        },
+        "newsDate": "2026-11-23"
+      },
+      {
+        "id": "news_mus_06",
+        "countryCode": "TZ",
+        "category": "culture",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel artiste tanzanien fondateur du label WCB Wasafi reste l’une des figures les plus écoutées du Bongo Flava en Afrique de l’Est ?",
+          "en": "Which Tanzanian artist and WCB Wasafi founder remains East Africa’s most streamed Bongo Flava star?",
+          "es": "¿Qué artista tanzano fundador de WCB Wasafi sigue siendo la gran figura del Bongo Flava en África Oriental?",
+          "pt": "Qual artista tanzaniano fundador da WCB Wasafi é o maior nome do Bongo Flava na África Oriental?",
+          "ar": "أي فنان تنزاني مؤسس لشركة WCB Wasafi يُعد أبرز نجوم موسيقى بونغو فلافا في شرق أفريقيا؟"
+        },
+        "options": [
+          {
+            "fr": "Diamond Platnumz",
+            "en": "Diamond Platnumz",
+            "es": "Diamond Platnumz",
+            "pt": "Diamond Platnumz",
+            "ar": "دايموند بلاتنومز"
+          },
+          {
+            "fr": "Harmonize",
+            "en": "Harmonize",
+            "es": "Harmonize",
+            "pt": "Harmonize",
+            "ar": "هارمونايز"
+          },
+          {
+            "fr": "Rayvanny",
+            "en": "Rayvanny",
+            "es": "Rayvanny",
+            "pt": "Rayvanny",
+            "ar": "رايفاني"
+          },
+          {
+            "fr": "Ali Kiba",
+            "en": "Ali Kiba",
+            "es": "Ali Kiba",
+            "pt": "Ali Kiba",
+            "ar": "علي كيبا"
+          }
+        ],
+        "correctIndex": 0,
+        "explanation": {
+          "fr": "De Dar es Salaam, Diamond Platnumz a popularisé le swahili dans les classements musicaux africains et mondiaux.",
+          "en": "From Dar es Salaam, Diamond Platnumz has propelled Swahili Bongo Flava to massive streaming audiences.",
+          "es": "Desde Dar es Salaam, Diamond Platnumz ha llevado el suajili y el Bongo Flava a millones de oyentes.",
+          "pt": "De Dar es Salaam, Diamond Platnumz levou o Bongo Flava em suaíli a milhões de ouvintes.",
+          "ar": "من دار السلام، نشر دايموند بلاتنومز موسيقى السواحيلية بونغو فلافا على نطاق واسع."
+        },
+        "newsDate": "2026-11-23"
+      },
+      {
+        "id": "news_mus_07",
+        "countryCode": "NG",
+        "category": "culture",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quelle chanteuse bénino-nigériane de la nouvelle vague Afropop s’est imposée avec l’album « The Year I Turned 21 » ?",
+          "en": "Which Nigerian singer of Beninese descent broke records with her 2024 album \"The Year I Turned 21\"?",
+          "es": "¿Qué cantante nigeriana de origen beninés triunfó en 2024 con su álbum \"The Year I Turned 21\"?",
+          "pt": "Qual cantora nigeriana de origem beninense brilhou em 2024 com o álbum \"The Year I Turned 21\"?",
+          "ar": "أي مغنية نيجيرية من أصل بنيني تألقت بألبوم «The Year I Turned 21» عام 2024؟"
+        },
+        "options": [
+          {
+            "fr": "Tems",
+            "en": "Tems",
+            "es": "Tems",
+            "pt": "Tems",
+            "ar": "تيمز"
+          },
+          {
+            "fr": "Bloody Civilian",
+            "en": "Bloody Civilian",
+            "es": "Bloody Civilian",
+            "pt": "Bloody Civilian",
+            "ar": "بلادي سيفيليان"
+          },
+          {
+            "fr": "Qing Madi",
+            "en": "Qing Madi",
+            "es": "Qing Madi",
+            "pt": "Qing Madi",
+            "ar": "كينغ مادي"
+          },
+          {
+            "fr": "Ayra Starr",
+            "en": "Ayra Starr",
+            "es": "Ayra Starr",
+            "pt": "Ayra Starr",
+            "ar": "آيرا ستار"
+          }
+        ],
+        "correctIndex": 3,
+        "explanation": {
+          "fr": "Née à Cotonou et révélée à Lagos par Mavin Records, Ayra Starr incarne la génération montante de la musique ouest-africaine.",
+          "en": "Born in Cotonou and signed in Lagos, Ayra Starr leads the new generation of West African pop stars.",
+          "es": "Nacida en Cotonú y lanzada en Lagos, Ayra Starr lidera la nueva ola del pop de África Occidental.",
+          "pt": "Nascida em Cotonou e revelada em Lagos, Ayra Starr lidera a nova geração do pop africano.",
+          "ar": "وُلدت آيرا ستار في كوتونو وانطلقت من لاغوس لتمثل الجيل الجديد من موسيقى غرب أفريقيا."
+        },
+        "newsDate": "2026-11-23"
+      },
+      {
+        "id": "news_mus_08",
+        "countryCode": "GH",
+        "category": "culture",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel jeune rappeur et chanteur ghanéen de Konongo a remporté l’Artiste de l’Année aux Ghana Music Awards après son succès « Kwaku the Traveller » ?",
+          "en": "Which Ghanaian rapper and singer from Konongo won Artiste of the Year at the Ghana Music Awards following \"Kwaku the Traveller\"?",
+          "es": "¿Qué rapero y cantante ghanés ganó Artista del Año en los Ghana Music Awards tras \"Kwaku the Traveller\"?",
+          "pt": "Qual rapper e cantor ganense venceu Artista do Ano no Ghana Music Awards após \"Kwaku the Traveller\"?",
+          "ar": "أي مغني راب غاني فاز بلقب فنان العام في جوائز الموسيقى الغانية بعد نجاح «Kwaku the Traveller»؟"
+        },
+        "options": [
+          {
+            "fr": "Sarkodie",
+            "en": "Sarkodie",
+            "es": "Sarkodie",
+            "pt": "Sarkodie",
+            "ar": "ساركودي"
+          },
+          {
+            "fr": "King Promise",
+            "en": "King Promise",
+            "es": "King Promise",
+            "pt": "King Promise",
+            "ar": "كينغ بروميس"
+          },
+          {
+            "fr": "Black Sherif",
+            "en": "Black Sherif",
+            "es": "Black Sherif",
+            "pt": "Black Sherif",
+            "ar": "بلاك شريف"
+          },
+          {
+            "fr": "Stonebwoy",
+            "en": "Stonebwoy",
+            "es": "Stonebwoy",
+            "pt": "Stonebwoy",
+            "ar": "ستونبوي"
+          }
+        ],
+        "correctIndex": 2,
+        "explanation": {
+          "fr": "Black Sherif mêle highlife, drill ghanéen (Asakaa) et récits de jeunesse avec un immense écho sur le continent.",
+          "en": "Black Sherif blends Ghanaian highlife, Asakaa drill, and storytelling into a pan-African phenomenon.",
+          "es": "Black Sherif combina highlife ghanés y drill Asakaa con gran éxito en toda África.",
+          "pt": "Black Sherif mistura highlife ganense e drill Asakaa com grande repercussão africana.",
+          "ar": "يمزج بلاك شريف بين موسيقى الهايلايف والـAsakaa الغانية في أسلوب حظي بشعبية قارية واسعة."
+        },
+        "newsDate": "2026-11-23"
+      },
+      {
+        "id": "news_mus_09",
+        "countryCode": "CI",
+        "category": "culture",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quelle chanteuse ivoirienne, voix de « Tout laisser », représente la puissance du zouglou et de l’afropop féminine en Afrique francophone ?",
+          "en": "Which Ivorian singer behind \"Tout laisser\" is one of Francophone Africa’s leading voices?",
+          "es": "¿Qué cantante marfileña, voz de \"Tout laisser\", destaca en la escena musical de África francófona?",
+          "pt": "Qual cantora marfinense de \"Tout laisser\" é uma das grandes vozes da África francófona?",
+          "ar": "أي مغنية إيفوارية صاحبة أغنية «Tout laisser» تُعد من أبرز الأصوات النسائية في أفريقيا الفرنكوفونية؟"
+        },
+        "options": [
+          {
+            "fr": "Daphné",
+            "en": "Daphné",
+            "es": "Daphné",
+            "pt": "Daphné",
+            "ar": "دافني"
+          },
+          {
+            "fr": "Shan’L",
+            "en": "Shan’L",
+            "es": "Shan’L",
+            "pt": "Shan’L",
+            "ar": "شانل"
+          },
+          {
+            "fr": "Roselyne Layo",
+            "en": "Roselyne Layo",
+            "es": "Roselyne Layo",
+            "pt": "Roselyne Layo",
+            "ar": "روزيلين لايو"
+          },
+          {
+            "fr": "Josey",
+            "en": "Josey",
+            "es": "Josey",
+            "pt": "Josey",
+            "ar": "جوزي"
+          }
+        ],
+        "correctIndex": 3,
+        "explanation": {
+          "fr": "Josey et Roselyne Layo remplissent les grandes scènes d’Abidjan et rayonnent dans toute l’Afrique de l’Ouest et centrale.",
+          "en": "Josey is a powerhouse of Ivorian contemporary music celebrated across West and Central Africa.",
+          "es": "Josey es una gran referente de la música marfileña actual en África Occidental y Central.",
+          "pt": "Josey é um dos maiores nomes da música marfinense na África Ocidental e Central.",
+          "ar": "تُعد جوزي من أبرز نجمات الغناء المعاصر في كوت ديفوار وغرب ووسط أفريقيا."
+        },
+        "newsDate": "2026-11-23"
+      },
+      {
+        "id": "news_mus_10",
+        "countryCode": "ZA",
+        "category": "culture",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel style de musique électronique né dans les townships de Pretoria et Johannesburg domine les clubs et playlists de toute l’Afrique ?",
+          "en": "Which electronic dance genre born in the townships of Pretoria and Johannesburg dominates dancefloors across Africa?",
+          "es": "¿Qué estilo electrónico nacido en los municipios de Pretoria y Johannesburgo domina las pistas de toda África?",
+          "pt": "Qual gênero eletrônico nascido nos subúrbios de Pretória e Joanesburgo domina as pistas da África?",
+          "ar": "أي نوع موسيقي إلكتروني نشأ في أحياء بريتوريا وجوهانسبرغ ويسيطر على الساحة الأفريقية؟"
+        },
+        "options": [
+          {
+            "fr": "Le Raï",
+            "en": "Raï",
+            "es": "Raï",
+            "pt": "Raï",
+            "ar": "الراي"
+          },
+          {
+            "fr": "Le Coupé-Décalé",
+            "en": "Coupé-Décalé",
+            "es": "Coupé-Décalé",
+            "pt": "Coupé-Décalé",
+            "ar": "كوبيه ديكاليه"
+          },
+          {
+            "fr": "L’Amapiano",
+            "en": "Amapiano",
+            "es": "Amapiano",
+            "pt": "Amapiano",
+            "ar": "أمابيانو"
+          },
+          {
+            "fr": "Le Makossa",
+            "en": "Makossa",
+            "es": "Makossa",
+            "pt": "Makossa",
+            "ar": "ماكوسا"
+          }
+        ],
+        "correctIndex": 2,
+        "explanation": {
+          "fr": "Reconnaissable à ses basses profondes (« log drum ») et ses pianos jazzy, l’Amapiano unit désormais artistes sud-africains, nigérians et est-africains.",
+          "en": "Known for its signature log drum and soulful keys, Amapiano unites producers from Johannesburg to Lagos and Nairobi.",
+          "es": "Con su característico bajo \"log drum\" y pianos, el Amapiano une a artistas de todo el continente.",
+          "pt": "Com seu grave marcante e teclados envolventes, o Amapiano conecta artistas de toda a África.",
+          "ar": "يتميز أسلوب أمابيانو بإيقاع الجهير العميق والبيانو وأصبح يجمع فناني القارة من جنوب أفريقيا إلى نيجيريا وكينيا."
+        },
+        "newsDate": "2026-11-23"
+      }
+    ]
+  }
+}

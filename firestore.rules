@@ -1,0 +1,304 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny global safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Primitive Helpers ---
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedSignedIn() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(uid) {
+      return isVerifiedSignedIn() && request.auth.uid == uid;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidRoomCode(code) {
+      return code is string && code.size() >= 4 && code.size() <= 12 && code.matches('^[A-Z0-9]{4,12}$');
+    }
+
+    function isValidAvatar(val) {
+      return val is string && val in ['lion', 'eagle', 'panther', 'footballer'];
+    }
+
+    function isValidLang(val) {
+      return val is string && val in ['fr', 'en', 'es', 'pt', 'ar'];
+    }
+
+    function isValidCountry(val) {
+      return val is string && val.size() == 2 && val.matches('^[A-Z]{2}$');
+    }
+
+    function isValidWeekKey(val) {
+      return val is string && val.size() >= 6 && val.size() <= 12 && val.matches('^[0-9]{4}-W[0-9]{2}$');
+    }
+
+    function isNonNegativeInt(val, maxVal) {
+      return val is int && val >= 0 && val <= maxVal;
+    }
+
+    function isDuelParticipant(roomCode) {
+      return isVerifiedSignedIn() && (
+        exists(/databases/$(database)/documents/duels/$(roomCode)/participants/$(request.auth.uid))
+      );
+    }
+
+    // --- Validation Blueprints ---
+    function isValidPlayerProfile(data, uid) {
+      return data.keys().hasAll([
+          'uid', 'name', 'countryCode', 'avatar', 'language',
+          'bestGameScore', 'totalScore', 'weeklyScore', 'weekKey',
+          'diasporaScore', 'bestDiasporaScore', 'streak', 'bestStreak',
+          'lastDailyDate', 'gamesPlayed', 'gamesWon', 'isPublic',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'name', 'countryCode', 'avatar', 'language',
+          'bestGameScore', 'totalScore', 'weeklyScore', 'weekKey',
+          'diasporaScore', 'bestDiasporaScore', 'streak', 'bestStreak',
+          'lastDailyDate', 'gamesPlayed', 'gamesWon', 'isPublic',
+          'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.uid)
+        && data.uid == uid
+        && data.uid == request.auth.uid
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 28
+        && isValidCountry(data.countryCode)
+        && isValidAvatar(data.avatar)
+        && isValidLang(data.language)
+        && isNonNegativeInt(data.bestGameScore, 50000)
+        && isNonNegativeInt(data.totalScore, 5000000)
+        && isNonNegativeInt(data.weeklyScore, 500000)
+        && isValidWeekKey(data.weekKey)
+        && isNonNegativeInt(data.diasporaScore, 5000000)
+        && isNonNegativeInt(data.bestDiasporaScore, 50000)
+        && isNonNegativeInt(data.streak, 2000)
+        && isNonNegativeInt(data.bestStreak, 2000)
+        && data.lastDailyDate is string && data.lastDailyDate.size() <= 10
+        && isNonNegativeInt(data.gamesPlayed, 1000000)
+        && isNonNegativeInt(data.gamesWon, 1000000)
+        && data.gamesWon <= data.gamesPlayed
+        && data.isPublic is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidDuelRoom(data, roomCode) {
+      return data.keys().hasAll([
+          'roomCode', 'hostUid', 'hostName', 'hostCountryCode', 'hostAvatar',
+          'guestUid', 'guestName', 'guestCountryCode', 'guestAvatar',
+          'isPublic', 'status', 'hostScore', 'guestScore',
+          'winnerUid', 'isDraw', 'serverProof', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'roomCode', 'hostUid', 'hostName', 'hostCountryCode', 'hostAvatar',
+          'guestUid', 'guestName', 'guestCountryCode', 'guestAvatar',
+          'isPublic', 'status', 'hostScore', 'guestScore',
+          'winnerUid', 'isDraw', 'serverProof', 'createdAt', 'updatedAt'
+        ])
+        && isValidRoomCode(data.roomCode)
+        && data.roomCode == roomCode
+        && isValidId(data.hostUid)
+        && data.hostName is string && data.hostName.size() >= 1 && data.hostName.size() <= 28
+        && isValidCountry(data.hostCountryCode)
+        && isValidAvatar(data.hostAvatar)
+        && data.guestUid is string && data.guestUid.size() <= 128
+        && (data.guestUid == '' || isValidId(data.guestUid))
+        && data.guestName is string && data.guestName.size() <= 28
+        && data.guestCountryCode is string
+        && (data.guestCountryCode == '' || isValidCountry(data.guestCountryCode))
+        && isValidAvatar(data.guestAvatar)
+        && data.isPublic is bool
+        && data.status in ['waiting', 'countdown', 'question', 'reveal', 'finished']
+        && isNonNegativeInt(data.hostScore, 50000)
+        && isNonNegativeInt(data.guestScore, 50000)
+        && data.winnerUid is string && data.winnerUid.size() <= 128
+        && data.isDraw is bool
+        && data.serverProof is string && data.serverProof.size() <= 128
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidDuelParticipant(data, uid) {
+      return data.keys().hasAll(['uid', 'role', 'name', 'countryCode', 'avatar', 'joinedAt'])
+        && data.keys().hasOnly(['uid', 'role', 'name', 'countryCode', 'avatar', 'joinedAt'])
+        && isValidId(data.uid)
+        && data.uid == uid
+        && data.uid == request.auth.uid
+        && data.role in ['host', 'guest']
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 28
+        && isValidCountry(data.countryCode)
+        && isValidAvatar(data.avatar)
+        && data.joinedAt is timestamp;
+    }
+
+    function isValidDuelChatMessage(data, roomCode) {
+      return data.keys().hasAll([
+          'roomCode', 'senderUid', 'senderName', 'senderAvatar',
+          'senderCountryCode', 'kind', 'text', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'roomCode', 'senderUid', 'senderName', 'senderAvatar',
+          'senderCountryCode', 'kind', 'text', 'createdAt'
+        ])
+        && isValidRoomCode(data.roomCode)
+        && data.roomCode == roomCode
+        && isValidId(data.senderUid)
+        && data.senderUid == request.auth.uid
+        && data.senderName is string && data.senderName.size() >= 1 && data.senderName.size() <= 28
+        && isValidAvatar(data.senderAvatar)
+        && isValidCountry(data.senderCountryCode)
+        && data.kind in ['text', 'reaction']
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 280
+        && data.createdAt is timestamp;
+    }
+
+    // --- Collection: players/{uid} ---
+    match /players/{uid} {
+      allow get: if isValidId(uid) && isVerifiedSignedIn()
+        && (request.auth.uid == uid || existing().isPublic == true);
+
+      allow list: if isVerifiedSignedIn()
+        && (resource.data.uid == request.auth.uid || resource.data.isPublic == true);
+
+      allow create: if isValidId(uid)
+        && isOwner(uid)
+        && isValidPlayerProfile(incoming(), uid)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isValidId(uid)
+        && isOwner(uid)
+        && isValidPlayerProfile(incoming(), uid)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'countryCode', 'avatar', 'language',
+          'bestGameScore', 'totalScore', 'weeklyScore', 'weekKey',
+          'diasporaScore', 'bestDiasporaScore', 'streak', 'bestStreak',
+          'lastDailyDate', 'gamesPlayed', 'gamesWon', 'isPublic', 'updatedAt'
+        ]);
+
+      allow delete: if false;
+    }
+
+    // --- Collection: duels/{roomCode} ---
+    match /duels/{roomCode} {
+      allow get: if isValidRoomCode(roomCode) && isVerifiedSignedIn() && (
+        existing().hostUid == request.auth.uid
+        || (existing().guestUid != '' && existing().guestUid == request.auth.uid)
+        || (existing().status == 'waiting' && existing().guestUid == '')
+      );
+
+      allow list: if false;
+
+      allow create: if isValidRoomCode(roomCode)
+        && isVerifiedSignedIn()
+        && isValidDuelRoom(incoming(), roomCode)
+        && incoming().hostUid == request.auth.uid
+        && incoming().guestUid == ''
+        && incoming().status == 'waiting'
+        && incoming().hostScore == 0
+        && incoming().guestScore == 0
+        && incoming().winnerUid == ''
+        && incoming().isDraw == false
+        && incoming().serverProof == ''
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/duels/$(roomCode)/participants/$(request.auth.uid));
+
+      allow update: if isValidRoomCode(roomCode)
+        && isVerifiedSignedIn()
+        && existing().status != 'finished'
+        && isValidDuelRoom(incoming(), roomCode)
+        && incoming().roomCode == existing().roomCode
+        && incoming().hostUid == existing().hostUid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          // Action 1: Second player joins active unjoined duel
+          (
+            existing().status != 'finished'
+            && existing().guestUid == ''
+            && incoming().guestUid == request.auth.uid
+            && request.auth.uid != existing().hostUid
+            && existsAfter(/databases/$(database)/documents/duels/$(roomCode)/participants/$(request.auth.uid))
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'guestUid', 'guestName', 'guestCountryCode', 'guestAvatar', 'updatedAt'
+            ])
+          )
+          // Action 2: Either participant syncs active duel phase
+          || (
+            (existing().hostUid == request.auth.uid || (existing().guestUid != '' && existing().guestUid == request.auth.uid))
+            && incoming().guestUid == existing().guestUid
+            && incoming().status in ['waiting', 'countdown', 'question', 'reveal']
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+          )
+          // Action 3: Either participant records server-verified final duel outcome (terminal lock afterwards)
+          || (
+            (existing().hostUid == request.auth.uid || (existing().guestUid != '' && existing().guestUid == request.auth.uid))
+            && incoming().guestUid == existing().guestUid
+            && incoming().status == 'finished'
+            && incoming().serverProof.size() >= 16
+            && (incoming().winnerUid == '' || incoming().winnerUid == existing().hostUid || incoming().winnerUid == existing().guestUid)
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'hostScore', 'guestScore', 'winnerUid', 'isDraw', 'serverProof', 'updatedAt'
+            ])
+          )
+        );
+
+      allow delete: if false;
+
+      // --- Subcollection: duels/{roomCode}/participants/{uid} ---
+      match /participants/{uid} {
+        allow get: if isValidRoomCode(roomCode) && isValidId(uid) && isDuelParticipant(roomCode);
+        allow list: if isValidRoomCode(roomCode) && isDuelParticipant(roomCode);
+
+        allow create: if isValidRoomCode(roomCode)
+          && isValidId(uid)
+          && isOwner(uid)
+          && isValidDuelParticipant(incoming(), uid)
+          && incoming().joinedAt == request.time
+          && (
+            (incoming().role == 'host' && getAfter(/databases/$(database)/documents/duels/$(roomCode)).data.hostUid == uid)
+            || (incoming().role == 'guest' && getAfter(/databases/$(database)/documents/duels/$(roomCode)).data.guestUid == uid)
+          );
+
+        allow update, delete: if false;
+      }
+
+      // --- Subcollection: duels/{roomCode}/messages/{messageId} ---
+      match /messages/{messageId} {
+        allow get: if isValidRoomCode(roomCode) && isValidId(messageId) && isDuelParticipant(roomCode);
+        allow list: if isValidRoomCode(roomCode) && isDuelParticipant(roomCode);
+
+        allow create: if isValidRoomCode(roomCode)
+          && isValidId(messageId)
+          && isDuelParticipant(roomCode)
+          && isValidDuelChatMessage(incoming(), roomCode)
+          && incoming().createdAt == request.time;
+
+        allow update, delete: if false;
+      }
+    }
+  }
+}

@@ -1,6 +1,8 @@
 import type { User } from 'firebase/auth';
 import {
+  AlertTriangle,
   ArrowLeft,
+  Bot,
   Check,
   CheckCircle2,
   Clock,
@@ -10,8 +12,10 @@ import {
   MessageCircle,
   Play,
   Plus,
+  RefreshCw,
   RotateCcw,
   ShieldCheck,
+  Sparkles,
   Swords,
   Users,
   WifiOff,
@@ -20,18 +24,25 @@ import {
 } from 'lucide-react';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { getCountryByCode, getCountryName } from '../data/countries54';
+import { ALL_QUESTIONS } from '../data/questionBank';
 import { getUiText } from '../i18n/translations';
 import {
+  checkFirestoreDuelsConnection,
+  FirestoreDuelDiagnostic,
   sendDuelChatMessage,
   subscribeToDuelMessages,
   syncParticipantDuelRoom,
 } from '../services/duelFirebase';
 import {
+  AvatarId,
   DuelChatMessage,
   DuelParticipant,
   DuelRoomSnapshot,
   PlayerProfile,
+  QuizQuestion,
 } from '../types/quiz';
+import { getBasePointsForDifficulty } from '../utils/levelSystem';
+import { balanceQuestionSet } from '../utils/questionShuffle';
 import { soundEngine } from '../utils/sound';
 import { AvatarBadge } from './AvatarBadge';
 import { ConfettiOverlay } from './ConfettiOverlay';
@@ -50,6 +61,19 @@ interface DuelScreenProps {
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 
+const AFRICAN_RIVALS: Array<{ name: string; countryCode: string; avatar: AvatarId }> = [
+  { name: 'Kofi Mensah', countryCode: 'GH', avatar: 'footballer' },
+  { name: 'Fatou Diallo', countryCode: 'SN', avatar: 'eagle' },
+  { name: 'Amara Koné', countryCode: 'CI', avatar: 'panther' },
+  { name: 'Amina Al-Mansoor', countryCode: 'EG', avatar: 'lion' },
+  { name: 'Tendai Moyo', countryCode: 'ZW', avatar: 'eagle' },
+  { name: 'Ngozi Eze', countryCode: 'NG', avatar: 'footballer' },
+  { name: 'Chinedu Okafor', countryCode: 'NG', avatar: 'lion' },
+  { name: 'Youssef Benali', countryCode: 'MA', avatar: 'panther' },
+  { name: 'Aicha Camara', countryCode: 'GN', avatar: 'eagle' },
+  { name: 'Moussa Traoré', countryCode: 'ML', avatar: 'footballer' },
+];
+
 export function DuelScreen({
   player,
   firebaseUser,
@@ -67,6 +91,12 @@ export function DuelScreen({
   const [copiedLink, setCopiedLink] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
   const [optimisticChoice, setOptimisticChoice] = useState<number | null>(null);
+  const [diag, setDiag] = useState<FirestoreDuelDiagnostic | null>(null);
+  const [diagLoading, setDiagLoading] = useState(true);
+  const [connectionTimedOut, setConnectionTimedOut] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isLocalMatch, setIsLocalMatch] = useState(false);
+  const localQuestionsRef = useRef<QuizQuestion[]>([]);
 
   const wsRef = useRef<WebSocket | null>(null);
   const roomRef = useRef<DuelRoomSnapshot | null>(null);
@@ -123,6 +153,7 @@ export function DuelScreen({
 
     ws.onopen = () => {
       setWsReady(true);
+      setConnectionTimedOut(false);
       setErrorMsg('');
 
       if (roomRef.current?.roomCode) {

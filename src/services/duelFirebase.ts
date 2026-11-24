@@ -20,7 +20,47 @@ import type {
   DuelStatus,
   PlayerProfile,
 } from '../types/quiz';
+import firebaseConfig from '../../firebase-applet-config.json';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
+
+export interface FirestoreDuelDiagnostic {
+  status: 'checking' | 'connected' | 'error';
+  databaseId: string;
+  projectId: string;
+  collectionName: 'duels';
+  responseTimeMs?: number;
+  errorMessage?: string;
+  checkedAt: number;
+}
+
+export async function checkFirestoreDuelsConnection(): Promise<FirestoreDuelDiagnostic> {
+  const t0 = Date.now();
+  const dbId = (firebaseConfig as { firestoreDatabaseId?: string }).firestoreDatabaseId || 'default';
+  const projId = (firebaseConfig as { projectId?: string }).projectId || 'quiz-gabon-69577';
+
+  try {
+    const snap = await getDoc(doc(db, 'duels', 'DIAG01'));
+    return {
+      status: 'connected',
+      databaseId: dbId,
+      projectId: projId,
+      collectionName: 'duels',
+      responseTimeMs: Date.now() - t0,
+      checkedAt: Date.now(),
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return {
+      status: 'error',
+      databaseId: dbId,
+      projectId: projId,
+      collectionName: 'duels',
+      responseTimeMs: Date.now() - t0,
+      errorMessage: msg,
+      checkedAt: Date.now(),
+    };
+  }
+}
 
 export interface FirestoreDuelRoomDoc {
   roomCode: string;

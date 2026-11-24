@@ -58,6 +58,10 @@ service cloud.firestore {
     function isDuelParticipant(roomCode) {
       return isVerifiedSignedIn() && (
         exists(/databases/$(database)/documents/duels/$(roomCode)/participants/$(request.auth.uid))
+        || (exists(/databases/$(database)/documents/duels/$(roomCode)) && (
+          get(/databases/$(database)/documents/duels/$(roomCode)).data.hostUid == request.auth.uid
+          || get(/databases/$(database)/documents/duels/$(roomCode)).data.guestUid == request.auth.uid
+        ))
       );
     }
 
@@ -203,11 +207,7 @@ service cloud.firestore {
 
     // --- Collection: duels/{roomCode} ---
     match /duels/{roomCode} {
-      allow get: if isValidRoomCode(roomCode) && isVerifiedSignedIn() && (
-        existing().hostUid == request.auth.uid
-        || (existing().guestUid != '' && existing().guestUid == request.auth.uid)
-        || (existing().status == 'waiting' && existing().guestUid == '')
-      );
+      allow get: if isValidRoomCode(roomCode) && isVerifiedSignedIn();
 
       allow list: if false;
 

@@ -12,7 +12,6 @@ import {
   getDocFromServer,
   getDocs,
   getFirestore,
-  initializeFirestore,
   limit,
   orderBy,
   query,
@@ -26,21 +25,7 @@ import type { AvatarId, Language, PlayerProfile } from '../types/quiz';
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-function createFirestoreDb() {
-  try {
-    return initializeFirestore(
-      app,
-      {
-        experimentalForceLongPolling: true,
-      },
-      firebaseConfig.firestoreDatabaseId
-    );
-  } catch {
-    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
-  }
-}
-
-export const db = createFirestoreDb();
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 
 // Automatically sign in anonymously on boot if not already signed in
@@ -204,6 +189,16 @@ export async function loadCloudPlayerProfile(uid: string): Promise<CloudPlayerDo
     if (!snap.exists()) return null;
     return snap.data() as CloudPlayerDoc;
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (
+      msg.includes('client is offline') ||
+      msg.includes('unavailable') ||
+      msg.includes('network') ||
+      msg.includes('The operation could not be completed')
+    ) {
+      console.warn('Firestore offline, continuing with local profile.');
+      return null;
+    }
     handleFirestoreError(error, OperationType.GET, path);
   }
 }
@@ -261,7 +256,17 @@ export async function syncPlayerProfileToFirestore(
       existing = snap.data() as CloudPlayerDoc;
     }
   } catch (error) {
-    handleFirestoreError(error, OperationType.GET, path);
+    const msg = error instanceof Error ? error.message : String(error);
+    if (
+      msg.includes('client is offline') ||
+      msg.includes('unavailable') ||
+      msg.includes('network') ||
+      msg.includes('The operation could not be completed')
+    ) {
+      console.warn('Firestore offline while checking existing profile, proceeding with local.');
+    } else {
+      handleFirestoreError(error, OperationType.GET, path);
+    }
   }
 
   const weekKey = getCurrentIsoWeekKey();
@@ -329,6 +334,16 @@ export async function syncPlayerProfileToFirestore(
     }
     return { ...basePayload } as CloudPlayerDoc;
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (
+      msg.includes('client is offline') ||
+      msg.includes('unavailable') ||
+      msg.includes('network') ||
+      msg.includes('The operation could not be completed')
+    ) {
+      console.warn('Firestore offline while saving profile, using local version.');
+      return { ...basePayload } as CloudPlayerDoc;
+    }
     handleFirestoreError(error, existing ? OperationType.UPDATE : OperationType.CREATE, path);
   }
 }

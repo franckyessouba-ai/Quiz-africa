@@ -96,8 +96,20 @@ export async function syncParticipantDuelRoom(
       }
     }
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (
+      msg.includes('client is offline') ||
+      msg.includes('unavailable') ||
+      msg.includes('network') ||
+      msg.includes('The operation could not be completed')
+    ) {
+      console.warn('Firestore offline while syncing duel room, skipping sync pass.');
+      return;
+    }
     handleFirestoreError(error, OperationType.GET, roomPath);
   }
+
+  if (!existingSnap) return;
 
   const isHostInWs = snapshot.hostId === profile.id;
   const safeName = sanitizeName(profile.name, 'Champion');
@@ -140,6 +152,11 @@ export async function syncParticipantDuelRoom(
     try {
       await batch.commit();
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes('client is offline') || msg.includes('unavailable') || msg.includes('network')) {
+        console.warn('Firestore offline while creating room doc, will sync once online.');
+        return;
+      }
       handleFirestoreError(error, OperationType.CREATE, roomPath);
     }
     return;
@@ -173,6 +190,11 @@ export async function syncParticipantDuelRoom(
     try {
       await batch.commit();
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes('client is offline') || msg.includes('unavailable') || msg.includes('network')) {
+        console.warn('Firestore offline while joining room doc, will sync once online.');
+        return;
+      }
       handleFirestoreError(error, OperationType.UPDATE, roomPath);
     }
     return;
@@ -204,6 +226,11 @@ export async function syncParticipantDuelRoom(
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes('client is offline') || msg.includes('unavailable') || msg.includes('network')) {
+        console.warn('Firestore offline while saving finished duel doc.');
+        return;
+      }
       handleFirestoreError(error, OperationType.UPDATE, roomPath);
     }
   } else if (
@@ -219,6 +246,11 @@ export async function syncParticipantDuelRoom(
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes('client is offline') || msg.includes('unavailable') || msg.includes('network')) {
+        console.warn('Firestore offline while updating duel status.');
+        return;
+      }
       handleFirestoreError(error, OperationType.UPDATE, roomPath);
     }
   }

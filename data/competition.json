@@ -7,12 +7,23 @@
       "countryCode": "GA",
       "avatar": "panther",
       "bestGameScore": 2284,
-      "totalScore": 19998,
-      "weeklyScore": 19998,
+      "totalScore": 20953,
+      "weeklyScore": 20953,
       "streak": 1,
-      "updatedAt": 1795514098591,
+      "updatedAt": 1795531421282,
       "diasporaScore": 0,
       "bestDiasporaScore": 0
+    },
+    {
+      "id": "Adw0sy8edghfU7MyNxA6thb0nUF3",
+      "name": "Francky",
+      "countryCode": "GA",
+      "avatar": "panther",
+      "bestGameScore": 2284,
+      "totalScore": 20953,
+      "weeklyScore": 20953,
+      "streak": 1,
+      "updatedAt": 1795531424199
     }
   ],
   "processedSubmissionIds": [

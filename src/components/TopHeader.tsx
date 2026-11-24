@@ -3,8 +3,6 @@ import {
   CheckCircle2,
   Flame,
   Globe,
-  LogIn,
-  LogOut,
   Trophy,
   UserCog,
   Volume2,
@@ -153,32 +151,7 @@ export function TopHeader({
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              soundEngine.playClick();
-              if (firebaseUser) {
-                onSignOutGoogle().catch(() => null);
-              } else {
-                onSignInGoogle().catch(() => null);
-              }
-            }}
-            className={`min-h-[40px] px-2.5 sm:px-3 rounded-xl border text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-              firebaseUser
-                ? 'bg-[#009E49]/15 border-[#009E49]/45 text-[var(--qa-green-text)] hover:border-[#009E49]'
-                : 'bg-[var(--qa-inset)] border-[var(--qa-border)] text-[var(--qa-text)] hover:border-[#0072CE]/70'
-            }`}
-            title={firebaseUser ? t.authGoogleSignOutBtn : t.authGoogleSignInBtn}
-          >
-            {firebaseUser ? (
-              <LogOut className="w-3.5 h-3.5 shrink-0" />
-            ) : (
-              <LogIn className="w-3.5 h-3.5 text-[var(--qa-blue-text)] shrink-0" />
-            )}
-            <span className="hidden xl:inline">
-              {firebaseUser ? t.authCloudSyncedLabel : t.authGoogleSignInBtn}
-            </span>
-          </button>
+
 
           <button
             type="button"

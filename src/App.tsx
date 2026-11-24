@@ -194,7 +194,7 @@ export default function App() {
   useEffect(() => {
     const unsub = subscribeToAuth(async (user) => {
       setFirebaseUser(user);
-      if (!user || !user.emailVerified) return;
+      if (!user) return;
 
       const currentLocal = loadStoredProfile();
       if (!currentLocal) return;

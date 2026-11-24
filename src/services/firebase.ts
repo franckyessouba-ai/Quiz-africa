@@ -1,10 +1,8 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import {
   getAuth,
-  GoogleAuthProvider,
   onAuthStateChanged,
-  signInWithPopup,
-  signOut,
+  signInAnonymously,
   type User,
 } from 'firebase/auth';
 import {
@@ -44,8 +42,26 @@ function createFirestoreDb() {
 
 export const db = createFirestoreDb();
 export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+// Automatically sign in anonymously on boot if not already signed in
+if (typeof window !== 'undefined') {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      signInAnonymously(auth).catch((err) => {
+        console.warn('Anonymous auth sign-in warning:', err);
+      });
+    }
+  });
+}
+
+export async function signInWithGooglePopup(): Promise<User> {
+  const cred = await signInAnonymously(auth);
+  return cred.user;
+}
+
+export async function signOutFirebase(): Promise<void> {
+  // Anonymous session stays active; no-op
+}
 
 export enum OperationType {
   CREATE = 'create',
@@ -62,14 +78,7 @@ export interface FirestoreErrorInfo {
   path: string | null;
   authInfo: {
     userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
     isAnonymous?: boolean | null;
-    tenantId?: string | null;
-    providerInfo?: {
-      providerId?: string | null;
-      email?: string | null;
-    }[];
   };
 }
 
@@ -82,15 +91,7 @@ export function handleFirestoreError(
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
       userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
       isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo:
-        auth.currentUser?.providerData?.map((provider) => ({
-          providerId: provider.providerId,
-          email: provider.email,
-        })) || [],
     },
     operationType,
     path,
@@ -114,7 +115,6 @@ async function testConnection(isRetry = false) {
         }, 3000);
         return;
       }
-      // Graceful fallback for offline/unavailable environment without noisy console logs
     }
   }
 }
@@ -129,15 +129,6 @@ if (typeof window !== 'undefined') {
 
 export function subscribeToAuth(callback: (user: User | null) => void): () => void {
   return onAuthStateChanged(auth, callback);
-}
-
-export async function signInWithGooglePopup(): Promise<User> {
-  const cred = await signInWithPopup(auth, googleProvider);
-  return cred.user;
-}
-
-export async function signOutFirebase(): Promise<void> {
-  await signOut(auth);
 }
 
 export async function getFirebaseIdToken(forceRefresh = false): Promise<string | null> {
@@ -204,7 +195,7 @@ function sanitizeCountryCode(val: unknown): string {
 }
 
 export async function loadCloudPlayerProfile(uid: string): Promise<CloudPlayerDoc | null> {
-  if (!auth.currentUser || auth.currentUser.uid !== uid || !auth.currentUser.emailVerified) {
+  if (!auth.currentUser || auth.currentUser.uid !== uid) {
     return null;
   }
   const path = `players/${uid}`;
@@ -258,7 +249,7 @@ export async function syncPlayerProfileToFirestore(
   profile: PlayerProfile,
   user: User | null = auth.currentUser
 ): Promise<CloudPlayerDoc | null> {
-  if (!user || !user.emailVerified) return null;
+  if (!user) return null;
   const uid = user.uid;
   const path = `players/${uid}`;
   const docRef = doc(db, 'players', uid);
@@ -285,7 +276,8 @@ export async function syncPlayerProfileToFirestore(
   const existingWeekly = existing && existing.weekKey === weekKey ? existing.weeklyScore : 0;
 
   const basePayload = {
-    name: (profile.name || user.displayName || 'Champion').trim().slice(0, 28) || 'Champion',
+    uid,
+    name: (profile.name || 'Champion').trim().slice(0, 28) || 'Champion',
     countryCode: sanitizeCountryCode(profile.countryCode),
     avatar: sanitizeAvatar(profile.avatar),
     language: sanitizeLang(profile.language),
@@ -322,7 +314,6 @@ export async function syncPlayerProfileToFirestore(
   try {
     if (!existing) {
       await setDoc(docRef, {
-        uid,
         ...basePayload,
         createdAt: serverTimestamp(),
       });
@@ -330,21 +321,20 @@ export async function syncPlayerProfileToFirestore(
       await setDoc(
         docRef,
         {
-          uid: existing.uid,
           createdAt: existing.createdAt,
           ...basePayload,
         },
         { merge: false }
       );
     }
-    return { uid, ...basePayload } as CloudPlayerDoc;
+    return { ...basePayload } as CloudPlayerDoc;
   } catch (error) {
     handleFirestoreError(error, existing ? OperationType.UPDATE : OperationType.CREATE, path);
   }
 }
 
 export async function fetchPublicPlayersFromFirestore(maxCount = 50): Promise<CloudPlayerDoc[]> {
-  if (!auth.currentUser || !auth.currentUser.emailVerified) return [];
+  if (!auth.currentUser) return [];
   const path = 'players';
   try {
     const q = query(
@@ -356,7 +346,6 @@ export async function fetchPublicPlayersFromFirestore(maxCount = 50): Promise<Cl
     const snap = await getDocs(q);
     return snap.docs.map((d) => d.data() as CloudPlayerDoc);
   } catch (error) {
-    // Do not crash leaderboard if index is still building or permissions deny; return empty gracefully after logging
     console.warn('Firestore leaderboard query fallback:', error);
     return [];
   }

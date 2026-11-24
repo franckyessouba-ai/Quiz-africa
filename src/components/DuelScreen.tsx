@@ -7,7 +7,6 @@ import {
   Copy,
   Crown,
   Lightbulb,
-  LogIn,
   MessageCircle,
   Play,
   Plus,
@@ -22,8 +21,13 @@ import {
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { getCountryByCode, getCountryName } from '../data/countries54';
 import { getUiText } from '../i18n/translations';
-import { syncParticipantDuelRoom } from '../services/duelFirebase';
 import {
+  sendDuelChatMessage,
+  subscribeToDuelMessages,
+  syncParticipantDuelRoom,
+} from '../services/duelFirebase';
+import {
+  DuelChatMessage,
   DuelParticipant,
   DuelRoomSnapshot,
   PlayerProfile,
@@ -63,8 +67,6 @@ export function DuelScreen({
   const [copiedLink, setCopiedLink] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
   const [optimisticChoice, setOptimisticChoice] = useState<number | null>(null);
-  const [signingIn, setSigningIn] = useState(false);
-  const [authError, setAuthError] = useState('');
 
   const wsRef = useRef<WebSocket | null>(null);
   const roomRef = useRef<DuelRoomSnapshot | null>(null);
@@ -76,9 +78,30 @@ export function DuelScreen({
 
   const t = getUiText(player.language);
 
+  const [messages, setMessages] = useState<DuelChatMessage[]>([]);
+
   useEffect(() => {
-    roomRef.current = room;
-  }, [room]);
+    if (!room?.roomCode) return;
+    const unsub = subscribeToDuelMessages(
+      room.roomCode,
+      (list) => setMessages(list),
+      () => {}
+    );
+    return () => unsub();
+  }, [room?.roomCode]);
+
+  const handleSendMessage = async (text: string, kind: 'text' | 'reaction') => {
+    try {
+      await sendDuelChatMessage({
+        roomCode: room!.roomCode,
+        profile: player,
+        text,
+        kind,
+      });
+    } catch {
+      // ignore
+    }
+  };
 
   const sendEvent = useCallback((event: string, payload: Record<string, unknown>) => {
     const ws = wsRef.current;
@@ -118,7 +141,7 @@ export function DuelScreen({
             },
           })
         );
-      } else if (initialRoomCode && !autoJoinedRef.current && firebaseUser) {
+      } else if (initialRoomCode && !autoJoinedRef.current) {
         autoJoinedRef.current = true;
         ws.send(
           JSON.stringify({
@@ -127,7 +150,7 @@ export function DuelScreen({
               roomCode: initialRoomCode.trim().toUpperCase(),
               player: {
                 id: player.id,
-                firebaseUid: firebaseUser.uid,
+                firebaseUid: firebaseUser?.uid || null,
                 name: player.name,
                 countryCode: player.countryCode,
                 avatar: player.avatar,
@@ -278,19 +301,6 @@ export function DuelScreen({
     avatar: player.avatar,
   };
 
-  const handleGoogleSignIn = async () => {
-    soundEngine.playClick();
-    setSigningIn(true);
-    setAuthError('');
-    try {
-      await onSignInGoogle();
-    } catch {
-      setAuthError(t.authErrorPopup);
-    } finally {
-      setSigningIn(false);
-    }
-  };
-
   const handleCreateDuel = () => {
     soundEngine.playClick();
     setErrorMsg('');
@@ -416,35 +426,6 @@ export function DuelScreen({
           </h1>
         </div>
 
-        {!firebaseUser ? (
-          <section className="rounded-3xl bg-[var(--qa-card)] border border-[#F5B700]/50 p-6 sm:p-8 text-center space-y-5 shadow-xl">
-            <div className="w-16 h-16 rounded-2xl bg-[#0072CE]/15 border border-[#0072CE]/45 flex items-center justify-center mx-auto">
-              <ShieldCheck className="w-8 h-8 text-[var(--qa-gold-text)]" />
-            </div>
-            <div className="space-y-2 max-w-md mx-auto">
-              <h2 className="font-display font-extrabold text-xl text-[var(--qa-text)]">
-                {t.authDuelGateTitle}
-              </h2>
-              <p className="text-sm text-[var(--qa-text-soft)] leading-relaxed">
-                {t.authDuelGateDesc}
-              </p>
-            </div>
-            {authError && (
-              <div className="p-3 rounded-2xl bg-[#D92B2B]/15 border border-[#D92B2B]/50 text-xs sm:text-sm font-bold text-[#D92B2B]">
-                {authError}
-              </div>
-            )}
-            <button
-              type="button"
-              disabled={signingIn}
-              onClick={handleGoogleSignIn}
-              className="min-h-[56px] px-6 rounded-2xl bg-gradient-to-r from-[#009E49] to-[#00B253] hover:brightness-110 disabled:opacity-50 text-white font-display font-extrabold text-base inline-flex items-center justify-center gap-2.5 shadow-lg"
-            >
-              <LogIn className="w-5 h-5 text-[#F5B700]" />
-              <span>{signingIn ? t.authSigningIn : t.authGoogleSignInBtn}</span>
-            </button>
-          </section>
-        ) : (
           <section className="rounded-3xl bg-[var(--qa-card)] border border-[#0072CE]/50 p-5 sm:p-6 space-y-5 shadow-xl">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-[#0072CE]/15 border border-[#0072CE]/45 flex items-center justify-center shrink-0">
@@ -509,10 +490,9 @@ export function DuelScreen({
               </button>
             </form>
           </section>
-        )}
-      </main>
-    );
-  }
+        </main>
+      );
+    }
 
   const me: DuelParticipant | undefined = room.players.find((p) => p.id === player.id);
   const opponent: DuelParticipant | undefined = room.players.find((p) => p.id !== player.id);
@@ -655,11 +635,12 @@ export function DuelScreen({
           )}
         </section>
 
-        {firebaseUser && (
+        {room && (
           <DuelChatPanel
             roomCode={room.roomCode}
-            player={player}
-            firebaseUid={firebaseUser.uid}
+            profile={player}
+            messages={messages}
+            onSendMessage={handleSendMessage}
             defaultOpen={true}
           />
         )}
@@ -780,11 +761,12 @@ export function DuelScreen({
           </div>
         </section>
 
-        {firebaseUser && (
+        {room && (
           <DuelChatPanel
             roomCode={room.roomCode}
-            player={player}
-            firebaseUid={firebaseUser.uid}
+            profile={player}
+            messages={messages}
+            onSendMessage={handleSendMessage}
             defaultOpen={true}
           />
         )}
@@ -975,11 +957,12 @@ export function DuelScreen({
         )}
       </section>
 
-      {firebaseUser && (
+      {room && (
         <DuelChatPanel
           roomCode={room.roomCode}
-          player={player}
-          firebaseUid={firebaseUser.uid}
+          profile={player}
+          messages={messages}
+          onSendMessage={handleSendMessage}
           defaultOpen={false}
         />
       )}

@@ -1,370 +1,95 @@
 {
   "entities": {
     "PlayerProfileCloud": {
-      "title": "PlayerProfileCloud",
-      "description": "Cloud-synced player progression and game statistics tied to an authenticated Firebase user (strictly PII-free).",
-      "type": "object",
+      "description": "Cloud synchronized player profile",
       "properties": {
-        "uid": {
-          "type": "string",
-          "description": "Firebase Auth UID of the player.",
-          "minLength": 1,
-          "maxLength": 128,
-          "pattern": "^[a-zA-Z0-9_\\-]+$"
-        },
-        "name": {
-          "type": "string",
-          "description": "Public player display name.",
-          "minLength": 1,
-          "maxLength": 28
-        },
-        "countryCode": {
-          "type": "string",
-          "description": "2-letter African country identity code.",
-          "minLength": 2,
-          "maxLength": 2,
-          "pattern": "^[A-Z]{2}$"
-        },
-        "avatar": {
-          "type": "string",
-          "description": "Chosen avatar identifier.",
-          "enum": ["lion", "eagle", "panther", "footballer"]
-        },
-        "language": {
-          "type": "string",
-          "description": "Preferred UI language code.",
-          "enum": ["fr", "en", "es", "pt", "ar"]
-        },
-        "bestGameScore": {
-          "type": "integer",
-          "description": "Highest single-match score."
-        },
-        "totalScore": {
-          "type": "integer",
-          "description": "Cumulative career points."
-        },
-        "weeklyScore": {
-          "type": "integer",
-          "description": "Current ISO week score."
-        },
-        "weekKey": {
-          "type": "string",
-          "description": "ISO week identifier (YYYY-Www).",
-          "minLength": 6,
-          "maxLength": 12,
-          "pattern": "^[0-9]{4}-W[0-9]{2}$"
-        },
-        "diasporaScore": {
-          "type": "integer",
-          "description": "Cumulative Diaspora category score."
-        },
-        "bestDiasporaScore": {
-          "type": "integer",
-          "description": "Highest Diaspora single-match score."
-        },
-        "streak": {
-          "type": "integer",
-          "description": "Current daily challenge streak."
-        },
-        "bestStreak": {
-          "type": "integer",
-          "description": "Best recorded daily challenge streak."
-        },
-        "lastDailyDate": {
-          "type": "string",
-          "description": "Last completed daily challenge date (YYYY-MM-DD or empty string).",
-          "maxLength": 10
-        },
-        "gamesPlayed": {
-          "type": "integer",
-          "description": "Total games played."
-        },
-        "gamesWon": {
-          "type": "integer",
-          "description": "Total games won."
-        },
-        "isPublic": {
-          "type": "boolean",
-          "description": "Whether public leaderboard stats are visible to other signed-in players."
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Server creation timestamp."
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Server last update timestamp."
-        }
-      },
-      "required": [
-        "uid",
-        "name",
-        "countryCode",
-        "avatar",
-        "language",
-        "bestGameScore",
-        "totalScore",
-        "weeklyScore",
-        "weekKey",
-        "diasporaScore",
-        "bestDiasporaScore",
-        "streak",
-        "bestStreak",
-        "lastDailyDate",
-        "gamesPlayed",
-        "gamesWon",
-        "isPublic",
-        "createdAt",
-        "updatedAt"
-      ]
+        "uid": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 28 },
+        "countryCode": { "type": "string", "maxLength": 2 },
+        "avatar": { "type": "string" },
+        "language": { "type": "string" },
+        "bestGameScore": { "type": "integer" },
+        "totalScore": { "type": "integer" },
+        "weeklyScore": { "type": "integer" },
+        "weekKey": { "type": "string" },
+        "diasporaScore": { "type": "integer" },
+        "bestDiasporaScore": { "type": "integer" },
+        "streak": { "type": "integer" },
+        "bestStreak": { "type": "integer" },
+        "lastDailyDate": { "type": "string" },
+        "gamesPlayed": { "type": "integer" },
+        "gamesWon": { "type": "integer" },
+        "isPublic": { "type": "boolean" },
+        "createdAt": { "type": "timestamp" },
+        "updatedAt": { "type": "timestamp" }
+      }
     },
     "DuelRoom": {
-      "title": "DuelRoom",
-      "description": "Multiplayer duel session synchronizing participant identities, match status, and server-verifiable final results.",
-      "type": "object",
+      "description": "Real-time duel room state",
       "properties": {
-        "roomCode": {
-          "type": "string",
-          "description": "Unique 4-to-12 character duel room identifier.",
-          "minLength": 4,
-          "maxLength": 12,
-          "pattern": "^[A-Z0-9]{4,12}$"
-        },
-        "hostUid": {
-          "type": "string",
-          "description": "Firebase Auth UID of the duel creator.",
-          "minLength": 1,
-          "maxLength": 128,
-          "pattern": "^[a-zA-Z0-9_\\-]+$"
-        },
-        "hostName": {
-          "type": "string",
-          "description": "Display name of the host player.",
-          "minLength": 1,
-          "maxLength": 28
-        },
-        "hostCountryCode": {
-          "type": "string",
-          "description": "2-letter country code of the host.",
-          "minLength": 2,
-          "maxLength": 2,
-          "pattern": "^[A-Z]{2}$"
-        },
-        "hostAvatar": {
-          "type": "string",
-          "description": "Host avatar ID.",
-          "enum": ["lion", "eagle", "panther", "footballer"]
-        },
-        "guestUid": {
-          "type": "string",
-          "description": "Firebase Auth UID of the second participant, or empty string while waiting.",
-          "maxLength": 128
-        },
-        "guestName": {
-          "type": "string",
-          "description": "Display name of the second participant.",
-          "maxLength": 28
-        },
-        "guestCountryCode": {
-          "type": "string",
-          "description": "2-letter country code of the guest (or empty while waiting).",
-          "maxLength": 2
-        },
-        "guestAvatar": {
-          "type": "string",
-          "description": "Guest avatar ID.",
-          "enum": ["lion", "eagle", "panther", "footballer"]
-        },
-        "isPublic": {
-          "type": "boolean",
-          "description": "Whether quick-match players may join this waiting room."
-        },
-        "status": {
-          "type": "string",
-          "description": "Current lifecycle phase of the duel.",
-          "enum": ["waiting", "countdown", "question", "reveal", "finished"]
-        },
-        "hostScore": {
-          "type": "integer",
-          "description": "Authoritative host duel score."
-        },
-        "guestScore": {
-          "type": "integer",
-          "description": "Authoritative guest duel score."
-        },
-        "winnerUid": {
-          "type": "string",
-          "description": "UID of the winner once finished, or empty string.",
-          "maxLength": 128
-        },
-        "isDraw": {
-          "type": "boolean",
-          "description": "True if duel ended in a tie."
-        },
-        "serverProof": {
-          "type": "string",
-          "description": "Server-generated HMAC proof of verified final duel scores.",
-          "maxLength": 128
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Server creation timestamp."
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Server last update timestamp."
-        }
-      },
-      "required": [
-        "roomCode",
-        "hostUid",
-        "hostName",
-        "hostCountryCode",
-        "hostAvatar",
-        "guestUid",
-        "guestName",
-        "guestCountryCode",
-        "guestAvatar",
-        "isPublic",
-        "status",
-        "hostScore",
-        "guestScore",
-        "winnerUid",
-        "isDraw",
-        "serverProof",
-        "createdAt",
-        "updatedAt"
-      ]
+        "roomCode": { "type": "string", "maxLength": 12 },
+        "hostUid": { "type": "string", "maxLength": 128 },
+        "hostName": { "type": "string", "maxLength": 28 },
+        "hostCountryCode": { "type": "string", "maxLength": 2 },
+        "hostAvatar": { "type": "string" },
+        "guestUid": { "type": "string", "maxLength": 128 },
+        "guestName": { "type": "string", "maxLength": 28 },
+        "guestCountryCode": { "type": "string", "maxLength": 2 },
+        "guestAvatar": { "type": "string" },
+        "isPublic": { "type": "boolean" },
+        "status": { "type": "string" },
+        "hostScore": { "type": "integer" },
+        "guestScore": { "type": "integer" },
+        "winnerUid": { "type": "string", "maxLength": 128 },
+        "isDraw": { "type": "boolean" },
+        "serverProof": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "timestamp" },
+        "updatedAt": { "type": "timestamp" }
+      }
     },
     "DuelParticipantDoc": {
-      "title": "DuelParticipantDoc",
-      "description": "Subcollection membership record representing a verified participant inside a duel room.",
-      "type": "object",
+      "description": "Participant record in duel room",
       "properties": {
-        "uid": {
-          "type": "string",
-          "description": "Firebase Auth UID of the participant.",
-          "minLength": 1,
-          "maxLength": 128,
-          "pattern": "^[a-zA-Z0-9_\\-]+$"
-        },
-        "role": {
-          "type": "string",
-          "description": "Participant role in the duel.",
-          "enum": ["host", "guest"]
-        },
-        "name": {
-          "type": "string",
-          "description": "Player display name.",
-          "minLength": 1,
-          "maxLength": 28
-        },
-        "countryCode": {
-          "type": "string",
-          "description": "2-letter country code.",
-          "minLength": 2,
-          "maxLength": 2,
-          "pattern": "^[A-Z]{2}$"
-        },
-        "avatar": {
-          "type": "string",
-          "description": "Player avatar identifier.",
-          "enum": ["lion", "eagle", "panther", "footballer"]
-        },
-        "joinedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Server join timestamp."
-        }
-      },
-      "required": ["uid", "role", "name", "countryCode", "avatar", "joinedAt"]
+        "uid": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string" },
+        "name": { "type": "string", "maxLength": 28 },
+        "countryCode": { "type": "string", "maxLength": 2 },
+        "avatar": { "type": "string" },
+        "joinedAt": { "type": "timestamp" }
+      }
     },
     "DuelChatMessage": {
-      "title": "DuelChatMessage",
-      "description": "Real-time live chat message or quick reaction exchanged exclusively between the two participants of a duel.",
-      "type": "object",
+      "description": "Live chat message in duel room",
       "properties": {
-        "roomCode": {
-          "type": "string",
-          "description": "Parent duel room identifier.",
-          "minLength": 4,
-          "maxLength": 12,
-          "pattern": "^[A-Z0-9]{4,12}$"
-        },
-        "senderUid": {
-          "type": "string",
-          "description": "Firebase Auth UID of the message author.",
-          "minLength": 1,
-          "maxLength": 128,
-          "pattern": "^[a-zA-Z0-9_\\-]+$"
-        },
-        "senderName": {
-          "type": "string",
-          "description": "Sender display name.",
-          "minLength": 1,
-          "maxLength": 28
-        },
-        "senderAvatar": {
-          "type": "string",
-          "description": "Sender avatar identifier.",
-          "enum": ["lion", "eagle", "panther", "footballer"]
-        },
-        "senderCountryCode": {
-          "type": "string",
-          "description": "Sender 2-letter country code.",
-          "minLength": 2,
-          "maxLength": 2,
-          "pattern": "^[A-Z]{2}$"
-        },
-        "kind": {
-          "type": "string",
-          "description": "Message kind: standard text/emoji or quick reaction.",
-          "enum": ["text", "reaction"]
-        },
-        "text": {
-          "type": "string",
-          "description": "Sanitized message text or emoji reaction payload.",
-          "minLength": 1,
-          "maxLength": 280
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Server message creation timestamp."
-        }
-      },
-      "required": [
-        "roomCode",
-        "senderUid",
-        "senderName",
-        "senderAvatar",
-        "senderCountryCode",
-        "kind",
-        "text",
-        "createdAt"
-      ]
+        "roomCode": { "type": "string", "maxLength": 12 },
+        "senderUid": { "type": "string", "maxLength": 128 },
+        "senderName": { "type": "string", "maxLength": 28 },
+        "senderAvatar": { "type": "string" },
+        "senderCountryCode": { "type": "string", "maxLength": 2 },
+        "kind": { "type": "string" },
+        "text": { "type": "string", "maxLength": 280 },
+        "createdAt": { "type": "timestamp" }
+      }
     }
   },
   "firestore": {
-    "/players/{uid}": {
-      "schema": { "$ref": "#/entities/PlayerProfileCloud" },
-      "description": "Authenticated player cloud profile and leaderboard score summary (no PII)."
-    },
-    "/duels/{roomCode}": {
-      "schema": { "$ref": "#/entities/DuelRoom" },
-      "description": "Duel room state, participant UIDs, and immutable final result once finished."
-    },
-    "/duels/{roomCode}/participants/{uid}": {
-      "schema": { "$ref": "#/entities/DuelParticipantDoc" },
-      "description": "Verified participant records for a duel room."
-    },
-    "/duels/{roomCode}/messages/{messageId}": {
-      "schema": { "$ref": "#/entities/DuelChatMessage" },
-      "description": "Real-time chat messages and quick reactions scoped strictly to the two duel participants."
+    "paths": {
+      "/players/{uid}": {
+        "entity": "PlayerProfileCloud",
+        "description": "Player profile document keyed by auth uid"
+      },
+      "/duels/{roomCode}": {
+        "entity": "DuelRoom",
+        "description": "Duel room document keyed by room code"
+      },
+      "/duels/{roomCode}/participants/{uid}": {
+        "entity": "DuelParticipantDoc",
+        "description": "Participants subcollection"
+      },
+      "/duels/{roomCode}/messages/{messageId}": {
+        "entity": "DuelChatMessage",
+        "description": "Live chat messages subcollection"
+      }
     }
   }
 }

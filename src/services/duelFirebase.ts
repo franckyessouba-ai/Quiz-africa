@@ -76,7 +76,7 @@ export async function syncParticipantDuelRoom(
   profile: PlayerProfile,
   user: User | null = auth.currentUser
 ): Promise<void> {
-  if (!user || !user.emailVerified) return;
+  if (!user) return;
   const roomCode = sanitizeRoomCode(snapshot.roomCode);
   if (roomCode.length < 4) return;
 
@@ -100,13 +100,13 @@ export async function syncParticipantDuelRoom(
   }
 
   const isHostInWs = snapshot.hostId === profile.id;
-  const safeName = sanitizeName(profile.name, user.displayName || 'Champion');
+  const safeName = sanitizeName(profile.name, 'Champion');
   const safeCountry = sanitizeCountry(profile.countryCode);
   const safeAvatar = sanitizeAvatar(profile.avatar);
 
   // 1. Room does not exist in Firestore yet -> Host creates room + host participant atomically
   if (!existingSnap.exists()) {
-    if (!isHostInWs) return; // Guest exits only if host doc never materialized
+    if (!isHostInWs) return;
     const batch = writeBatch(db);
     batch.set(roomRef, {
       roomCode,
@@ -178,7 +178,7 @@ export async function syncParticipantDuelRoom(
     return;
   }
 
-  // 3. Only verified participants may update room lifecycle or finalize verified scores
+  // 3. Only participants may update room status or results
   const isParticipant = roomData.hostUid === uid || roomData.guestUid === uid;
   if (!isParticipant || roomData.status === 'finished') return;
 
@@ -231,7 +231,7 @@ export function subscribeToDuelRoomDoc(
 ): () => void {
   const user = auth.currentUser;
   const roomCode = sanitizeRoomCode(rawRoomCode);
-  if (!user || !user.emailVerified || roomCode.length < 4) {
+  if (!user || roomCode.length < 4) {
     return () => undefined;
   }
 
@@ -258,7 +258,7 @@ export function subscribeToDuelMessages(
 ): () => void {
   const user = auth.currentUser;
   const roomCode = sanitizeRoomCode(rawRoomCode);
-  if (!user || !user.emailVerified || roomCode.length < 4) {
+  if (!user || roomCode.length < 4) {
     return () => undefined;
   }
 
@@ -307,12 +307,12 @@ export async function sendDuelChatMessage(params: {
   user?: User | null;
 }): Promise<void> {
   const user = params.user ?? auth.currentUser;
-  if (!user || !user.emailVerified) {
+  if (!user) {
     throw new Error('Authentication required for duel chat');
   }
   const roomCode = sanitizeRoomCode(params.roomCode);
   const cleanText = params.text.trim().slice(0, 280);
-  if (roomCode.length < 4 || !cleanText) return;
+  if (roomCode.length < 4 || !cleanTest(cleanText)) return;
 
   const msgId = createMessageId(user.uid);
   const path = `duels/${roomCode}/messages/${msgId}`;
@@ -321,7 +321,7 @@ export async function sendDuelChatMessage(params: {
     await setDoc(doc(db, 'duels', roomCode, 'messages', msgId), {
       roomCode,
       senderUid: user.uid,
-      senderName: sanitizeName(params.profile.name, user.displayName || 'Champion'),
+      senderName: sanitizeName(params.profile.name, 'Champion'),
       senderAvatar: sanitizeAvatar(params.profile.avatar),
       senderCountryCode: sanitizeCountry(params.profile.countryCode),
       kind: params.kind,
@@ -331,4 +331,8 @@ export async function sendDuelChatMessage(params: {
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, path);
   }
+}
+
+function cleanTest(txt: string): boolean {
+  return txt.length > 0;
 }

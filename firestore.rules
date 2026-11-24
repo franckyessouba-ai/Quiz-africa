@@ -20,11 +20,11 @@ service cloud.firestore {
     }
 
     function isVerifiedSignedIn() {
-      return isSignedIn() && request.auth.token.email_verified == true;
+      return isSignedIn();
     }
 
     function isOwner(uid) {
-      return isVerifiedSignedIn() && request.auth.uid == uid;
+      return isSignedIn() && request.auth.uid == uid;
     }
 
     function isValidId(id) {

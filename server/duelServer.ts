@@ -230,19 +230,19 @@ export function attachDuelWebSocketServer(
 
     if (room.players.length >= 2) {
       const [p1, p2] = room.players;
-      if (p1.score > p2.score) {
-        room.winnerId = p1.id;
-        room.winnerFirebaseUid = p1.firebaseUid || null;
-        room.isDraw = false;
-      } else if (p2.score > p1.score) {
-        room.winnerId = p2.id;
-        room.winnerFirebaseUid = p2.firebaseUid || null;
-        room.isDraw = false;
-      } else if (p1.correctCount > p2.correctCount) {
+      if (p1.correctCount > p2.correctCount) {
         room.winnerId = p1.id;
         room.winnerFirebaseUid = p1.firebaseUid || null;
         room.isDraw = false;
       } else if (p2.correctCount > p1.correctCount) {
+        room.winnerId = p2.id;
+        room.winnerFirebaseUid = p2.firebaseUid || null;
+        room.isDraw = false;
+      } else if (p1.score > p2.score) {
+        room.winnerId = p1.id;
+        room.winnerFirebaseUid = p1.firebaseUid || null;
+        room.isDraw = false;
+      } else if (p2.score > p1.score) {
         room.winnerId = p2.id;
         room.winnerFirebaseUid = p2.firebaseUid || null;
         room.isDraw = false;

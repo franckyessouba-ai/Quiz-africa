@@ -653,13 +653,13 @@ export async function finishFirestoreDuel(roomDoc: FirestoreDuelRoomDoc): Promis
 
   let winnerUid = '';
   let isDraw = false;
-  if (hostScore > guestScore) {
-    winnerUid = roomDoc.hostUid;
-  } else if (guestScore > hostScore) {
-    winnerUid = roomDoc.guestUid;
-  } else if (hostCorrect > guestCorrect) {
+  if (hostCorrect > guestCorrect) {
     winnerUid = roomDoc.hostUid;
   } else if (guestCorrect > hostCorrect) {
+    winnerUid = roomDoc.guestUid;
+  } else if (hostScore > guestScore) {
+    winnerUid = roomDoc.hostUid;
+  } else if (guestScore > hostScore) {
     winnerUid = roomDoc.guestUid;
   } else {
     isDraw = true;

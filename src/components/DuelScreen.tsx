@@ -484,8 +484,20 @@ export function DuelScreen({
             if (!prev) return null;
             const p0 = prev.players[0];
             const p1 = prev.players[1];
-            const isDraw = p0.score === p1.score;
-            const winnerId = isDraw ? null : p0.score > p1.score ? p0.id : p1.id;
+            let winnerId: string | null = null;
+            let isDraw = false;
+            if (p0.correctCount > p1.correctCount) {
+              winnerId = p0.id;
+            } else if (p1.correctCount > p0.correctCount) {
+              winnerId = p1.id;
+            } else if (p0.score > p1.score) {
+              winnerId = p0.id;
+            } else if (p1.score > p0.score) {
+              winnerId = p1.id;
+            } else {
+              isDraw = true;
+              winnerId = null;
+            }
             return {
               ...prev,
               status: 'finished',

@@ -182,7 +182,7 @@ export function HomeScreen({
 
       {/* Main Action Buttons - Vibrant 5-Card Dynamic Grid */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 1. JOUER */}
+        {/* 1. MODE NORMAL (JOUER) */}
         <motion.button
           whileHover={{ scale: 1.015, y: -2 }}
           whileTap={{ scale: 0.98 }}
@@ -209,7 +209,34 @@ export function HomeScreen({
           </div>
         </motion.button>
 
-        {/* 2. DÉFI DU JOUR */}
+        {/* 2. DUEL EN DIRECT */}
+        <motion.button
+          whileHover={{ scale: 1.015, y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          type="button"
+          onClick={() => {
+            soundEngine.playClick();
+            onDuelClick();
+          }}
+          className="group relative overflow-hidden min-h-[120px] p-6 rounded-3xl bg-gradient-to-r from-[#005CA8] via-[#0072CE] to-[#00386B] border border-[#38BDF8]/60 hover:brightness-110 text-start active:scale-[0.99] transition-all flex items-center justify-between gap-4 shadow-[0_12px_32px_rgba(0,114,206,0.3)]"
+        >
+          <div className="space-y-1.5 z-10 min-w-0">
+            <span className="inline-block px-2.5 py-0.5 rounded-lg bg-white/20 text-white text-[11px] font-extrabold uppercase tracking-widest">
+              Temps réel simultané
+            </span>
+            <span className="block font-display font-black text-2xl sm:text-3xl text-white tracking-tight truncate">
+              {t.btnDuel}
+            </span>
+            <span className="block text-xs sm:text-sm text-white/90 font-medium">
+              Affronte un vrai joueur en direct sur les mêmes 10 questions
+            </span>
+          </div>
+          <div className="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-lg">
+            <Swords className="w-8 h-8 text-white" />
+          </div>
+        </motion.button>
+
+        {/* 3. DÉFI DU JOUR */}
         <motion.button
           whileHover={{ scale: 1.015, y: -2 }}
           whileTap={{ scale: 0.98 }}
@@ -249,7 +276,7 @@ export function HomeScreen({
           </div>
         </motion.button>
 
-        {/* 3. CLASSEMENT */}
+        {/* 4. CLASSEMENT */}
         <motion.button
           whileHover={{ scale: 1.015, y: -2 }}
           whileTap={{ scale: 0.98 }}
@@ -258,7 +285,7 @@ export function HomeScreen({
             soundEngine.playClick();
             onLeaderboardClick();
           }}
-          className="group min-h-[104px] p-5 rounded-3xl bg-[var(--qa-card)] border border-[var(--qa-border)] hover:border-[#009E49] text-start active:scale-[0.98] transition-all flex items-center justify-between gap-4 shadow-xl"
+          className="group min-h-[120px] p-6 rounded-3xl bg-[var(--qa-card)] border border-[var(--qa-border)] hover:border-[#009E49] text-start active:scale-[0.98] transition-all flex items-center justify-between gap-4 shadow-xl"
         >
           <div className="space-y-1">
             <span className="block font-display font-black text-xl sm:text-2xl text-[var(--qa-text)]">
@@ -273,7 +300,7 @@ export function HomeScreen({
           </div>
         </motion.button>
 
-        {/* 4. COMPÉTITION DE LA SEMAINE */}
+        {/* 5. COMPÉTITION DE LA SEMAINE */}
         <motion.button
           whileHover={{ scale: 1.015, y: -2 }}
           whileTap={{ scale: 0.98 }}
@@ -282,7 +309,7 @@ export function HomeScreen({
             soundEngine.playClick();
             onWeeklyClick();
           }}
-          className="group min-h-[104px] p-5 rounded-3xl bg-[var(--qa-card)] border border-[#F5B700]/55 hover:border-[#F5B700] text-start active:scale-[0.98] transition-all flex items-center justify-between gap-4 shadow-xl"
+          className="group md:col-span-2 min-h-[104px] p-6 rounded-3xl bg-[var(--qa-card)] border border-[#F5B700]/55 hover:border-[#F5B700] text-start active:scale-[0.98] transition-all flex items-center justify-between gap-4 shadow-xl"
         >
           <div className="space-y-1">
             <span className="block font-display font-black text-xl sm:text-2xl text-[var(--qa-gold-text)]">
@@ -294,33 +321,6 @@ export function HomeScreen({
           </div>
           <div className="w-14 h-14 rounded-2xl bg-[#F5B700]/15 border border-[#F5B700]/45 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow">
             <Crown className="w-7 h-7 text-[var(--qa-gold-text)]" />
-          </div>
-        </motion.button>
-
-        {/* 5. DUEL EN DIRECT */}
-        <motion.button
-          whileHover={{ scale: 1.015, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          type="button"
-          onClick={() => {
-            soundEngine.playClick();
-            onDuelClick();
-          }}
-          className="group md:col-span-2 min-h-[100px] p-6 rounded-3xl bg-gradient-to-r from-[#005CA8] via-[#0072CE] to-[#00386B] border border-[#38BDF8]/60 hover:brightness-110 text-start active:scale-[0.99] transition-all flex items-center justify-between gap-4 shadow-[0_12px_32px_rgba(0,114,206,0.3)]"
-        >
-          <div className="space-y-1">
-            <span className="inline-block px-2.5 py-0.5 rounded-lg bg-white/20 text-white text-[11px] font-extrabold uppercase tracking-widest">
-              Temps réel simultané
-            </span>
-            <span className="block font-display font-black text-xl sm:text-2xl text-white">
-              {t.btnDuel}
-            </span>
-            <span className="block text-xs sm:text-sm text-white/90 font-medium">
-              Affronte un vrai joueur en direct sur les mêmes 10 questions
-            </span>
-          </div>
-          <div className="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-lg">
-            <Swords className="w-8 h-8 text-white" />
           </div>
         </motion.button>
       </section>

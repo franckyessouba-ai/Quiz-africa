@@ -27,11 +27,26 @@ import { selectNormalGameQuestions } from '../data/questionBank';
 import { getUiText } from '../i18n/translations';
 import {
   checkFirestoreDuelsConnection,
+  createFirestoreDuelRoom,
+  DUEL_QUESTION_MS,
+  DUEL_REVEAL_MS,
+  findOrCreateQuickMatchFirestore,
+  finishFirestoreDuel,
   FirestoreDuelDiagnostic,
+  FirestoreDuelRoomDoc,
+  joinFirestoreDuelRoom,
+  leaveFirestoreDuelRoom,
+  mapFirestoreRoomToSnapshot,
+  revealFirestoreDuelQuestion,
   sendDuelChatMessage,
+  startFirestoreDuelCountdown,
+  startFirestoreDuelQuestion,
+  submitFirestoreDuelAnswer,
   subscribeToDuelMessages,
-  syncParticipantDuelRoom,
+  subscribeToDuelRoomDoc,
+  updateFirestoreDuelCountdown,
 } from '../services/duelFirebase';
+import { auth, ensureFirebaseUser } from '../services/firebase';
 import {
   AvatarId,
   DuelChatMessage,
@@ -75,7 +90,6 @@ const AFRICAN_RIVALS: Array<{ name: string; countryCode: string; avatar: AvatarI
 export function DuelScreen({
   player,
   firebaseUser,
-  onSignInGoogle,
   isOnline,
   initialRoomCode,
   onClearInitialRoomCode,
@@ -83,34 +97,36 @@ export function DuelScreen({
   onBack,
 }: DuelScreenProps) {
   const [room, setRoom] = useState<DuelRoomSnapshot | null>(null);
-  const [wsReady, setWsReady] = useState(false);
+  const [activeFsRoomCode, setActiveFsRoomCode] = useState<string | null>(null);
+  const [fsRoomDoc, setFsRoomDoc] = useState<FirestoreDuelRoomDoc | null>(null);
+  const [actionBusy, setActionBusy] = useState(false);
+
   const [joinCodeInput, setJoinCodeInput] = useState(initialRoomCode || '');
   const [errorMsg, setErrorMsg] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
   const [optimisticChoice, setOptimisticChoice] = useState<number | null>(null);
+
   const [diag, setDiag] = useState<FirestoreDuelDiagnostic | null>(null);
   const [diagLoading, setDiagLoading] = useState(true);
   const [connectionTimedOut, setConnectionTimedOut] = useState(false);
-  const [wsErrorMsg, setWsErrorMsg] = useState('');
   const [retryCount, setRetryCount] = useState(0);
+
   const [isLocalMatch, setIsLocalMatch] = useState(false);
   const localQuestionsRef = useRef<QuizQuestion[]>([]);
   const localTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localBotTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const wsRef = useRef<WebSocket | null>(null);
-  const roomRef = useRef<DuelRoomSnapshot | null>(null);
-  const manualCloseRef = useRef(false);
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSoundKeyRef = useRef<string>('');
   const finishedHandledRef = useRef<string>('');
   const autoJoinedRef = useRef(false);
 
   const t = getUiText(player.language);
-
   const [messages, setMessages] = useState<DuelChatMessage[]>([]);
+
+  const myUid = firebaseUser?.uid || auth.currentUser?.uid || '';
+  const serverReady = diag?.status === 'connected';
 
   const clearLocalTimers = useCallback(() => {
     if (localTimeoutRef.current) {
@@ -128,14 +144,10 @@ export function DuelScreen({
   }, []);
 
   useEffect(() => {
-    roomRef.current = room;
-  }, [room]);
-
-  useEffect(() => {
     return () => clearLocalTimers();
   }, [clearLocalTimers]);
 
-  // Run Firestore 'duels' diagnostic + 5-second timeout guard when waiting in lobby
+  // Run Firestore 'duels' connection diagnostic + 5-second timeout guard
   useEffect(() => {
     if (!isOnline || room || isLocalMatch) return;
     let active = true;
@@ -150,10 +162,13 @@ export function DuelScreen({
 
     checkFirestoreDuelsConnection(5000).then((res) => {
       if (!active) return;
+      clearTimeout(timer);
       setDiag(res);
       setDiagLoading(false);
       if (res.status === 'error') {
         setConnectionTimedOut(true);
+      } else {
+        setConnectionTimedOut(false);
       }
     });
 
@@ -163,6 +178,72 @@ export function DuelScreen({
     };
   }, [isOnline, room, isLocalMatch, retryCount]);
 
+  // Auto-join from shared invite URL (?duel=XXXXXX) once Firestore is ready
+  useEffect(() => {
+    if (!serverReady || !initialRoomCode || autoJoinedRef.current || room || isLocalMatch) {
+      return;
+    }
+    autoJoinedRef.current = true;
+    const code = initialRoomCode.trim().toUpperCase();
+    setActionBusy(true);
+    joinFirestoreDuelRoom(code, player)
+      .then((joinedDoc) => {
+        const uid = auth.currentUser?.uid || myUid;
+        setFsRoomDoc(joinedDoc);
+        setActiveFsRoomCode(joinedDoc.roomCode);
+        setRoom(mapFirestoreRoomToSnapshot(joinedDoc, uid, player.id));
+        onClearInitialRoomCode?.();
+      })
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : '';
+        if (msg === 'ROOM_NOT_FOUND') setErrorMsg(t.duelErrNotFound);
+        else if (msg === 'ROOM_FULL') setErrorMsg(t.duelErrFull);
+        else setErrorMsg(t.duelErrInvalid);
+        onClearInitialRoomCode?.();
+      })
+      .finally(() => setActionBusy(false));
+  }, [
+    serverReady,
+    initialRoomCode,
+    room,
+    isLocalMatch,
+    player,
+    myUid,
+    onClearInitialRoomCode,
+    t.duelErrNotFound,
+    t.duelErrFull,
+    t.duelErrInvalid,
+  ]);
+
+  // Real-time Firestore listener on active duel room
+  useEffect(() => {
+    if (!activeFsRoomCode || isLocalMatch) return;
+    const unsub = subscribeToDuelRoomDoc(
+      activeFsRoomCode,
+      (docData) => {
+        if (!docData) return;
+        const uid = auth.currentUser?.uid || myUid;
+        setFsRoomDoc(docData);
+        const mapped = mapFirestoreRoomToSnapshot(docData, uid, player.id);
+        setRoom((prev) => {
+          if (
+            prev?.questionIndex !== mapped.questionIndex ||
+            (mapped.status === 'question' && prev?.status !== 'question')
+          ) {
+            setOptimisticChoice(null);
+          }
+          return mapped;
+        });
+      },
+      (err) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        setErrorMsg(msg);
+      }
+    );
+    return () => unsub();
+  }, [activeFsRoomCode, isLocalMatch, myUid, player.id]);
+
+  // Real-time Firestore Live Chat listener
   useEffect(() => {
     if (!room?.roomCode || isLocalMatch) return;
     const unsub = subscribeToDuelMessages(
@@ -173,165 +254,66 @@ export function DuelScreen({
     return () => unsub();
   }, [room?.roomCode, isLocalMatch]);
 
-  const handleSendMessage = async (text: string, kind: 'text' | 'reaction') => {
-    if (isLocalMatch || !room) return;
-    try {
-      await sendDuelChatMessage({
-        roomCode: room.roomCode,
-        profile: player,
-        text,
-        kind,
-      });
-    } catch {
-      // ignore
-    }
-  };
-
-  const sendEvent = useCallback((event: string, payload: Record<string, unknown>) => {
-    const ws = wsRef.current;
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ event, payload }));
-      return true;
-    }
-    return false;
-  }, []);
-
-  const connectSocket = useCallback(() => {
-    if (!isOnline || typeof window === 'undefined') return;
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
-
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/duel`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      setWsReady(true);
-      setConnectionTimedOut(false);
-      setWsErrorMsg('');
-      setErrorMsg('');
-
-      if (roomRef.current?.roomCode && !roomRef.current.roomCode.startsWith('LOCAL-')) {
-        ws.send(
-          JSON.stringify({
-            event: 'duel:rejoin',
-            payload: {
-              roomCode: roomRef.current.roomCode,
-              player: {
-                id: player.id,
-                firebaseUid: firebaseUser?.uid || null,
-                name: player.name,
-                countryCode: player.countryCode,
-                avatar: player.avatar,
-              },
-            },
-          })
-        );
-      } else if (initialRoomCode && !autoJoinedRef.current) {
-        autoJoinedRef.current = true;
-        ws.send(
-          JSON.stringify({
-            event: 'duel:join',
-            payload: {
-              roomCode: initialRoomCode.trim().toUpperCase(),
-              player: {
-                id: player.id,
-                firebaseUid: firebaseUser?.uid || null,
-                name: player.name,
-                countryCode: player.countryCode,
-                avatar: player.avatar,
-              },
-            },
-          })
-        );
-        onClearInitialRoomCode?.();
-      }
-    };
-
-    ws.onerror = () => {
-      setWsErrorMsg(`WebSocket error (${wsUrl})`);
-    };
-
-    ws.onmessage = (evt) => {
-      try {
-        const msg = JSON.parse(evt.data);
-        if (msg.event === 'duel:state') {
-          const nextRoom = msg.payload as DuelRoomSnapshot;
-          setIsLocalMatch(false);
-          setRoom((prev) => {
-            if (
-              prev?.questionIndex !== nextRoom.questionIndex ||
-              (nextRoom.status === 'question' && prev?.status !== 'question')
-            ) {
-              setOptimisticChoice(null);
-            }
-            return nextRoom;
-          });
-          setErrorMsg('');
-        } else if (msg.event === 'duel:error') {
-          const code = msg.payload?.code;
-          if (code === 'ROOM_NOT_FOUND') setErrorMsg(t.duelErrNotFound);
-          else if (code === 'ROOM_FULL') setErrorMsg(t.duelErrFull);
-          else setErrorMsg(t.duelErrInvalid);
-          soundEngine.playWrong();
-        }
-      } catch {
-        // Ignore malformed packets
-      }
-    };
-
-    ws.onclose = (evt) => {
-      setWsReady(false);
-      if (evt && evt.code && evt.code !== 1000 && evt.code !== 1005) {
-        setWsErrorMsg(`WebSocket fermé (code ${evt.code})`);
-      }
-      if (!manualCloseRef.current && isOnline) {
-        reconnectTimerRef.current = setTimeout(() => {
-          connectSocket();
-        }, 1500);
-      }
-    };
-  }, [
-    isOnline,
-    player.id,
-    player.name,
-    player.countryCode,
-    player.avatar,
-    firebaseUser?.uid,
-    initialRoomCode,
-    onClearInitialRoomCode,
-    t.duelErrNotFound,
-    t.duelErrFull,
-    t.duelErrInvalid,
-  ]);
-
+  // Drive Firestore Duel match phases cleanly (Host primary driver, Guest resilience fallback)
   useEffect(() => {
-    manualCloseRef.current = false;
-    if (isOnline) {
-      connectSocket();
+    if (isLocalMatch || !fsRoomDoc) return;
+    const uid = auth.currentUser?.uid || myUid;
+    if (!uid) return;
+
+    const isHost = fsRoomDoc.hostUid === uid;
+    const isGuest = fsRoomDoc.guestUid === uid;
+    if (!isHost && !isGuest) return;
+
+    if (fsRoomDoc.status === 'countdown') {
+      const delay = isHost ? 1000 : 3200;
+      const timer = setTimeout(() => {
+        if (fsRoomDoc.countdownSeconds > 1) {
+          void updateFirestoreDuelCountdown(fsRoomDoc.roomCode, fsRoomDoc.countdownSeconds - 1);
+        } else {
+          void startFirestoreDuelQuestion(fsRoomDoc.roomCode, 0, Date.now() + DUEL_QUESTION_MS);
+        }
+      }, delay);
+      return () => clearTimeout(timer);
     }
-    return () => {
-      manualCloseRef.current = true;
-      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
-      if (wsRef.current) {
-        if (
-          roomRef.current?.roomCode &&
-          !roomRef.current.roomCode.startsWith('LOCAL-') &&
-          wsRef.current.readyState === WebSocket.OPEN
-        ) {
-          wsRef.current.send(
-            JSON.stringify({
-              event: 'duel:leave',
-              payload: { roomCode: roomRef.current.roomCode, playerId: player.id },
-            })
+
+    if (fsRoomDoc.status === 'question') {
+      if (isHost && fsRoomDoc.hostAnswered && fsRoomDoc.guestAnswered) {
+        const quickTimer = setTimeout(() => {
+          void revealFirestoreDuelQuestion(fsRoomDoc.roomCode);
+        }, 350);
+        return () => clearTimeout(quickTimer);
+      }
+
+      const remainingMs = Math.max(200, (fsRoomDoc.questionEndsAtMs || Date.now()) - Date.now());
+      const timer = setTimeout(
+        () => {
+          void revealFirestoreDuelQuestion(fsRoomDoc.roomCode);
+        },
+        isHost ? remainingMs : remainingMs + 3500
+      );
+      return () => clearTimeout(timer);
+    }
+
+    if (fsRoomDoc.status === 'reveal') {
+      const delay = isHost ? DUEL_REVEAL_MS : DUEL_REVEAL_MS + 3500;
+      const timer = setTimeout(() => {
+        const nextIdx = (fsRoomDoc.questionIndex || 0) + 1;
+        const total = Array.isArray(fsRoomDoc.questionIds) ? fsRoomDoc.questionIds.length : 10;
+        if (nextIdx >= total) {
+          void finishFirestoreDuel(fsRoomDoc);
+        } else {
+          void startFirestoreDuelQuestion(
+            fsRoomDoc.roomCode,
+            nextIdx,
+            Date.now() + DUEL_QUESTION_MS
           );
         }
-        wsRef.current.close();
-        wsRef.current = null;
-      }
-    };
-  }, [isOnline, connectSocket, player.id]);
+      }, delay);
+      return () => clearTimeout(timer);
+    }
+  }, [isLocalMatch, fsRoomDoc, myUid]);
 
+  // Countdown visual timer during active question
   useEffect(() => {
     if (!room || room.status !== 'question') return;
     const update = () => {
@@ -343,6 +325,7 @@ export function DuelScreen({
     return () => clearInterval(timer);
   }, [room?.status, room?.questionEndsAt, room?.questionIndex]);
 
+  // Sound effects & finish score callback
   useEffect(() => {
     if (!room) return;
     const me = room.players.find((p) => p.id === player.id);
@@ -377,21 +360,21 @@ export function DuelScreen({
     }
   }, [room, player.id, onDuelFinished]);
 
-  // Sync duel room & participants to Firestore for secure live chat & verifiable results
-  useEffect(() => {
-    if (!room || !firebaseUser || isLocalMatch) return;
-    syncParticipantDuelRoom(room, player, firebaseUser).catch(() => null);
-  }, [
-    room?.roomCode,
-    room?.status,
-    room?.players.length,
-    room?.serverProof,
-    firebaseUser,
-    player,
-    room,
-    isLocalMatch,
-  ]);
+  const handleSendMessage = async (text: string, kind: 'text' | 'reaction') => {
+    if (isLocalMatch || !room) return;
+    try {
+      await sendDuelChatMessage({
+        roomCode: room.roomCode,
+        profile: player,
+        text,
+        kind,
+      });
+    } catch {
+      // ignore transient chat errors
+    }
+  };
 
+  // Local Duel fallback helpers (when offline or user clicks "Jouer en local")
   const startLocalQuestion = useCallback((idx: number) => {
     const q = localQuestionsRef.current[idx];
     if (!q) return;
@@ -432,7 +415,6 @@ export function DuelScreen({
     });
   }, [clearLocalTimers]);
 
-  // Drive local duel AI opponent & reveal transitions
   useEffect(() => {
     if (!isLocalMatch || !room) return;
 
@@ -538,6 +520,8 @@ export function DuelScreen({
 
     const localCode = `LOCAL-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
     setIsLocalMatch(true);
+    setActiveFsRoomCode(null);
+    setFsRoomDoc(null);
     setErrorMsg('');
     setOptimisticChoice(null);
     finishedHandledRef.current = '';
@@ -602,49 +586,64 @@ export function DuelScreen({
     soundEngine.playClick();
     setConnectionTimedOut(false);
     setDiagLoading(true);
-    setWsErrorMsg('');
     setErrorMsg('');
-    if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
-    if (wsRef.current) {
-      manualCloseRef.current = true;
-      wsRef.current.close();
-      wsRef.current = null;
-    }
-    manualCloseRef.current = false;
     setRetryCount((c) => c + 1);
-    if (isOnline) {
-      connectSocket();
+  };
+
+  const handleCreateDuel = async () => {
+    if (actionBusy) return;
+    soundEngine.playClick();
+    setErrorMsg('');
+    setActionBusy(true);
+    try {
+      const user = await ensureFirebaseUser(5000);
+      if (!user) {
+        throw new Error('Firebase Auth indisponible.');
+      }
+      const created = await createFirestoreDuelRoom(player, false);
+      finishedHandledRef.current = '';
+      setMessages([]);
+      setIsLocalMatch(false);
+      setFsRoomDoc(created);
+      setActiveFsRoomCode(created.roomCode);
+      setRoom(mapFirestoreRoomToSnapshot(created, user.uid, player.id));
+    } catch (err) {
+      soundEngine.playWrong();
+      setErrorMsg(err instanceof Error ? err.message : t.duelErrInvalid);
+    } finally {
+      setActionBusy(false);
     }
   };
 
-  const playerPayload = {
-    id: player.id,
-    firebaseUid: firebaseUser?.uid || null,
-    name: player.name,
-    countryCode: player.countryCode,
-    avatar: player.avatar,
-  };
-
-  const handleCreateDuel = () => {
+  const handleQuickMatch = async () => {
+    if (actionBusy) return;
     soundEngine.playClick();
     setErrorMsg('');
-    sendEvent('duel:create', {
-      player: playerPayload,
-      isPublic: false,
-    });
+    setActionBusy(true);
+    try {
+      const user = await ensureFirebaseUser(5000);
+      if (!user) {
+        throw new Error('Firebase Auth indisponible.');
+      }
+      const { room: matched } = await findOrCreateQuickMatchFirestore(player);
+      finishedHandledRef.current = '';
+      setMessages([]);
+      setIsLocalMatch(false);
+      setFsRoomDoc(matched);
+      setActiveFsRoomCode(matched.roomCode);
+      setRoom(mapFirestoreRoomToSnapshot(matched, user.uid, player.id));
+    } catch (err) {
+      soundEngine.playWrong();
+      setErrorMsg(err instanceof Error ? err.message : t.duelErrInvalid);
+    } finally {
+      setActionBusy(false);
+    }
   };
 
-  const handleQuickMatch = () => {
-    soundEngine.playClick();
-    setErrorMsg('');
-    sendEvent('duel:quick_match', {
-      player: playerPayload,
-    });
-  };
-
-  const handleJoinDuel = (e: FormEvent) => {
+  const handleJoinDuel = async (e: FormEvent) => {
     e.preventDefault();
-    const cleaned = joinCodeInput.trim().toUpperCase();
+    if (actionBusy) return;
+    const cleaned = joinCodeInput.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (cleaned.length < 4) {
       soundEngine.playWrong();
       setErrorMsg(t.duelErrInvalid);
@@ -652,26 +651,49 @@ export function DuelScreen({
     }
     soundEngine.playClick();
     setErrorMsg('');
-    sendEvent('duel:join', {
-      roomCode: cleaned,
-      player: playerPayload,
-    });
+    setActionBusy(true);
+    try {
+      const user = await ensureFirebaseUser(5000);
+      if (!user) {
+        throw new Error('Firebase Auth indisponible.');
+      }
+      const joined = await joinFirestoreDuelRoom(cleaned, player);
+      finishedHandledRef.current = '';
+      setMessages([]);
+      setIsLocalMatch(false);
+      setFsRoomDoc(joined);
+      setActiveFsRoomCode(joined.roomCode);
+      setRoom(mapFirestoreRoomToSnapshot(joined, user.uid, player.id));
+    } catch (err) {
+      soundEngine.playWrong();
+      const msg = err instanceof Error ? err.message : '';
+      if (msg === 'ROOM_NOT_FOUND') setErrorMsg(t.duelErrNotFound);
+      else if (msg === 'ROOM_FULL') setErrorMsg(t.duelErrFull);
+      else if (msg === 'INVALID_CODE') setErrorMsg(t.duelErrInvalid);
+      else setErrorMsg(msg || t.duelErrInvalid);
+    } finally {
+      setActionBusy(false);
+    }
   };
 
-  const handleStartDuel = () => {
-    if (!room) return;
+  const handleStartDuel = async () => {
+    if (!room || isLocalMatch) return;
     soundEngine.playClick();
-    sendEvent('duel:start', { roomCode: room.roomCode, playerId: player.id });
+    await startFirestoreDuelCountdown(room.roomCode);
   };
 
-  const handleLeaveRoom = () => {
+  const handleLeaveRoom = async () => {
     soundEngine.playClick();
     clearLocalTimers();
-    if (room && !isLocalMatch) {
-      sendEvent('duel:leave', { roomCode: room.roomCode, playerId: player.id });
+    const uid = auth.currentUser?.uid || myUid;
+    if (fsRoomDoc && !isLocalMatch && uid) {
+      void leaveFirestoreDuelRoom(fsRoomDoc, uid);
     }
+    setActiveFsRoomCode(null);
+    setFsRoomDoc(null);
     setIsLocalMatch(false);
     setRoom(null);
+    setMessages([]);
     setOptimisticChoice(null);
     setErrorMsg('');
   };
@@ -724,14 +746,11 @@ export function DuelScreen({
       return;
     }
 
-    sendEvent('duel:answer', {
-      roomCode: room.roomCode,
-      playerId: player.id,
-      questionIndex: room.questionIndex,
-      optionIndex,
-    });
+    const uid = auth.currentUser?.uid || myUid;
+    if (fsRoomDoc && uid) {
+      void submitFirestoreDuelAnswer(fsRoomDoc, uid, optionIndex);
+    }
   };
-
 
   // 1. Offline guard
   if (!isOnline && !room) {
@@ -771,7 +790,7 @@ export function DuelScreen({
     );
   }
 
-  // 2. Duel Auth Gate or Duel Lobby (General Africa questions — no categories)
+  // 2. Duel Lobby
   if (!room) {
     return (
       <main className="max-w-3xl mx-auto px-4 pt-5 pb-14 space-y-5">
@@ -793,145 +812,136 @@ export function DuelScreen({
           </h1>
         </div>
 
-          <section className="rounded-3xl bg-[var(--qa-card)] border border-[#0072CE]/50 p-5 sm:p-6 space-y-5 shadow-xl">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#0072CE]/15 border border-[#0072CE]/45 flex items-center justify-center shrink-0">
-                <Swords className="w-6 h-6 text-[var(--qa-blue-text)]" />
-              </div>
-              <h2 className="font-display font-extrabold text-lg sm:text-xl text-[var(--qa-text)]">
-                {t.btnDuel}
-              </h2>
+        <section className="rounded-3xl bg-[var(--qa-card)] border border-[#0072CE]/50 p-5 sm:p-6 space-y-5 shadow-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#0072CE]/15 border border-[#0072CE]/45 flex items-center justify-center shrink-0">
+              <Swords className="w-6 h-6 text-[var(--qa-blue-text)]" />
             </div>
+            <h2 className="font-display font-extrabold text-lg sm:text-xl text-[var(--qa-text)]">
+              {t.btnDuel}
+            </h2>
+          </div>
 
-            {!wsReady && !connectionTimedOut && diag?.status !== 'error' && (
-              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--qa-gold-text)]">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0" />
-                <span>{t.duelConnecting}</span>
+          {!serverReady && !connectionTimedOut && diag?.status !== 'error' && (
+            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--qa-gold-text)]">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0" />
+              <span>{t.duelConnecting}</span>
+            </div>
+          )}
+
+          {(connectionTimedOut || diag?.status === 'error') && !serverReady && (
+            <div className="p-4 rounded-2xl bg-[#D92B2B]/10 border border-[#D92B2B]/45 space-y-3">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="w-5 h-5 text-[#F5B700] shrink-0 mt-0.5" />
+                <div className="space-y-1 min-w-0 flex-1">
+                  <h3 className="font-display font-extrabold text-sm text-[var(--qa-text)]">
+                    {t.duelDiagTitle}
+                  </h3>
+                  <p className="text-xs text-[var(--qa-text-soft)]">{t.duelDiagTimeoutNotice}</p>
+                </div>
               </div>
-            )}
 
-            {((!wsReady && connectionTimedOut) || diag?.status === 'error') && (
-              <div className="p-4 rounded-2xl bg-[#D92B2B]/10 border border-[#D92B2B]/45 space-y-3">
-                <div className="flex items-start gap-2.5">
-                  <AlertTriangle className="w-5 h-5 text-[#F5B700] shrink-0 mt-0.5" />
-                  <div className="space-y-1 min-w-0 flex-1">
-                    <h3 className="font-display font-extrabold text-sm text-[var(--qa-text)]">
-                      {t.duelDiagTitle}
-                    </h3>
-                    {!wsReady && (
-                      <p className="text-xs text-[var(--qa-text-soft)]">{t.duelDiagTimeoutNotice}</p>
-                    )}
+              <div className="rounded-xl bg-[var(--qa-inset)] border border-[var(--qa-border)] p-3 space-y-1.5 text-xs">
+                {diagLoading && (
+                  <p className="text-[var(--qa-gold-text)] font-mono">
+                    Firestore (collection &apos;duels&apos;) : Vérification en cours...
+                  </p>
+                )}
+
+                {!diagLoading && diag?.status === 'error' && (
+                  <div className="space-y-1">
+                    <p className="text-[#D92B2B] font-bold">{t.duelDiagCollectionErr}</p>
+                    <p className="font-mono text-[11px] break-words bg-black/30 p-2 rounded-lg text-[#ff8a8a] border border-[#D92B2B]/30">
+                      {diag.errorMessage}
+                    </p>
                   </div>
-                </div>
+                )}
 
-                <div className="rounded-xl bg-[var(--qa-inset)] border border-[var(--qa-border)] p-3 space-y-1.5 text-xs">
-                  {diagLoading && (
-                    <p className="text-[var(--qa-gold-text)] font-mono">
-                      Firestore ({`collection 'duels'`}) : Vérification en cours...
-                    </p>
-                  )}
-
-                  {!diagLoading && diag?.status === 'connected' && (
-                    <p className="text-[var(--qa-green-text)] font-semibold">
-                      {t.duelDiagCollectionOk} ({diag.responseTimeMs} ms)
-                    </p>
-                  )}
-
-                  {!diagLoading && diag?.status === 'error' && (
-                    <div className="space-y-1">
-                      <p className="text-[#D92B2B] font-bold">{t.duelDiagCollectionErr}</p>
-                      <p className="font-mono text-[11px] break-words bg-black/30 p-2 rounded-lg text-[#ff8a8a] border border-[#D92B2B]/30">
-                        {diag.errorMessage}
-                      </p>
-                    </div>
-                  )}
-
-                  {!wsReady && (
-                    <p className="text-[var(--qa-muted)]">
-                      {t.duelDiagWsTimeout}
-                      {wsErrorMsg ? ` — ${wsErrorMsg}` : ''}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleRetryConnection}
-                    className="min-h-[48px] px-4 rounded-xl bg-[var(--qa-inset)] border border-[#F5B700]/60 hover:border-[#F5B700] text-[var(--qa-text)] font-display font-bold text-sm flex items-center justify-center gap-2"
-                  >
-                    <RefreshCw className="w-4 h-4 text-[var(--qa-gold-text)]" />
-                    <span>{t.duelRetryBtn}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleStartLocalMatch}
-                    className="min-h-[48px] px-4 rounded-xl bg-gradient-to-r from-[#009E49] to-[#00B253] hover:brightness-110 text-white font-display font-extrabold text-sm flex items-center justify-center gap-2 shadow-md"
-                  >
-                    <Bot className="w-4 h-4 text-[#F5B700]" />
-                    <span>{t.duelPlayLocalBtn}</span>
-                  </button>
-                </div>
-                <p className="text-[11px] text-[var(--qa-muted)] text-center">
-                  {t.duelPlayLocalDesc}
-                </p>
+                {!diagLoading && !diag && (
+                  <p className="font-mono text-[11px] break-words bg-black/30 p-2 rounded-lg text-[#ff8a8a] border border-[#D92B2B]/30">
+                    Timeout (5s) : Cloud Firestore n&apos;a pas répondu sur la collection &apos;duels&apos;.
+                  </p>
+                )}
               </div>
-            )}
 
-            {errorMsg && (
-              <div className="p-3 rounded-2xl bg-[#D92B2B]/15 border border-[#D92B2B]/50 text-sm font-bold text-[#D92B2B]">
-                {errorMsg}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={handleRetryConnection}
+                  className="min-h-[48px] px-4 rounded-xl bg-[var(--qa-inset)] border border-[#F5B700]/60 hover:border-[#F5B700] text-[var(--qa-text)] font-display font-bold text-sm flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4 text-[var(--qa-gold-text)]" />
+                  <span>{t.duelRetryBtn}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleStartLocalMatch}
+                  className="min-h-[48px] px-4 rounded-xl bg-gradient-to-r from-[#009E49] to-[#00B253] hover:brightness-110 text-white font-display font-extrabold text-sm flex items-center justify-center gap-2 shadow-md"
+                >
+                  <Bot className="w-4 h-4 text-[#F5B700]" />
+                  <span>{t.duelPlayLocalBtn}</span>
+                </button>
               </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                disabled={!wsReady}
-                onClick={handleQuickMatch}
-                className="min-h-[60px] px-5 rounded-2xl bg-gradient-to-r from-[#009E49] to-[#00B253] hover:brightness-110 disabled:opacity-50 text-white font-display font-extrabold text-base flex items-center justify-center gap-2.5 shadow-lg"
-              >
-                <Zap className="w-5 h-5 text-[#F5B700]" />
-                <span>{t.duelQuickMatchBtn}</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={!wsReady}
-                onClick={handleCreateDuel}
-                className="min-h-[60px] px-5 rounded-2xl bg-[#0072CE] hover:brightness-110 disabled:opacity-50 text-white font-display font-extrabold text-base flex items-center justify-center gap-2.5 shadow-lg"
-              >
-                <Plus className="w-5 h-5 text-white" />
-                <span>{t.duelCreateBtn}</span>
-              </button>
+              <p className="text-[11px] text-[var(--qa-muted)] text-center">
+                {t.duelPlayLocalDesc}
+              </p>
             </div>
+          )}
 
-            <form onSubmit={handleJoinDuel} className="flex flex-col sm:flex-row gap-2.5 pt-1">
-              <input
-                type="text"
-                maxLength={8}
-                value={joinCodeInput}
-                onChange={(e) => {
-                  setJoinCodeInput(e.target.value.toUpperCase());
-                  if (errorMsg) setErrorMsg('');
-                }}
-                placeholder={t.duelCodePlaceholder}
-                className="flex-1 min-h-[52px] px-4 rounded-2xl bg-[var(--qa-inset)] border border-[var(--qa-border-strong)] text-[var(--qa-text)] font-display font-bold tracking-widest uppercase placeholder-[var(--qa-muted)] placeholder:tracking-normal focus:outline-none focus:border-[#F5B700]"
-              />
-              <button
-                type="submit"
-                disabled={!wsReady}
-                className="min-h-[52px] px-5 rounded-2xl bg-[#F5B700] hover:brightness-105 disabled:opacity-50 text-[#0A100D] font-display font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shrink-0"
-              >
-                <Users className="w-4 h-4" />
-                <span>{t.duelJoinBtn}</span>
-              </button>
-            </form>
-          </section>
-        </main>
-      );
-    }
+          {errorMsg && (
+            <div className="p-3 rounded-2xl bg-[#D92B2B]/15 border border-[#D92B2B]/50 text-sm font-bold text-[#D92B2B]">
+              {errorMsg}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              disabled={!serverReady || actionBusy}
+              onClick={handleQuickMatch}
+              className="min-h-[60px] px-5 rounded-2xl bg-gradient-to-r from-[#009E49] to-[#00B253] hover:brightness-110 disabled:opacity-50 text-white font-display font-extrabold text-base flex items-center justify-center gap-2.5 shadow-lg"
+            >
+              <Zap className="w-5 h-5 text-[#F5B700]" />
+              <span>{t.duelQuickMatchBtn}</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={!serverReady || actionBusy}
+              onClick={handleCreateDuel}
+              className="min-h-[60px] px-5 rounded-2xl bg-[#0072CE] hover:brightness-110 disabled:opacity-50 text-white font-display font-extrabold text-base flex items-center justify-center gap-2.5 shadow-lg"
+            >
+              <Plus className="w-5 h-5 text-white" />
+              <span>{t.duelCreateBtn}</span>
+            </button>
+          </div>
+
+          <form onSubmit={handleJoinDuel} className="flex flex-col sm:flex-row gap-2.5 pt-1">
+            <input
+              type="text"
+              maxLength={8}
+              value={joinCodeInput}
+              onChange={(e) => {
+                setJoinCodeInput(e.target.value.toUpperCase());
+                if (errorMsg) setErrorMsg('');
+              }}
+              placeholder={t.duelCodePlaceholder}
+              className="flex-1 min-h-[52px] px-4 rounded-2xl bg-[var(--qa-inset)] border border-[var(--qa-border-strong)] text-[var(--qa-text)] font-display font-bold tracking-widest uppercase placeholder-[var(--qa-muted)] placeholder:tracking-normal focus:outline-none focus:border-[#F5B700]"
+            />
+            <button
+              type="submit"
+              disabled={!serverReady || actionBusy}
+              className="min-h-[52px] px-5 rounded-2xl bg-[#F5B700] hover:brightness-105 disabled:opacity-50 text-[#0A100D] font-display font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shrink-0"
+            >
+              <Users className="w-4 h-4" />
+              <span>{t.duelJoinBtn}</span>
+            </button>
+          </form>
+        </section>
+      </main>
+    );
+  }
 
   const me: DuelParticipant | undefined = room.players.find((p) => p.id === player.id);
   const opponent: DuelParticipant | undefined = room.players.find((p) => p.id !== player.id);
@@ -1187,8 +1197,11 @@ export function DuelScreen({
               onClick={() => {
                 soundEngine.playClick();
                 clearLocalTimers();
+                setActiveFsRoomCode(null);
+                setFsRoomDoc(null);
                 setIsLocalMatch(false);
                 setRoom(null);
+                setMessages([]);
                 setOptimisticChoice(null);
               }}
               className="w-full min-h-[56px] px-6 rounded-2xl bg-gradient-to-r from-[#009E49] to-[#00B253] text-white font-display font-extrabold text-lg flex items-center justify-center gap-2.5"
@@ -1202,6 +1215,8 @@ export function DuelScreen({
               onClick={() => {
                 soundEngine.playClick();
                 clearLocalTimers();
+                setActiveFsRoomCode(null);
+                setFsRoomDoc(null);
                 setIsLocalMatch(false);
                 onBack();
               }}

@@ -109,13 +109,21 @@ service cloud.firestore {
       return data.keys().hasAll([
           'roomCode', 'hostUid', 'hostName', 'hostCountryCode', 'hostAvatar',
           'guestUid', 'guestName', 'guestCountryCode', 'guestAvatar',
-          'isPublic', 'status', 'hostScore', 'guestScore',
+          'isPublic', 'status', 'questionIds', 'questionSeed',
+          'countdownSeconds', 'questionIndex', 'questionEndsAtMs',
+          'hostScore', 'guestScore', 'hostCorrectCount', 'guestCorrectCount',
+          'hostAnswered', 'guestAnswered', 'hostOptionIndex', 'guestOptionIndex',
+          'hostLastPoints', 'guestLastPoints',
           'winnerUid', 'isDraw', 'serverProof', 'createdAt', 'updatedAt'
         ])
         && data.keys().hasOnly([
           'roomCode', 'hostUid', 'hostName', 'hostCountryCode', 'hostAvatar',
           'guestUid', 'guestName', 'guestCountryCode', 'guestAvatar',
-          'isPublic', 'status', 'hostScore', 'guestScore',
+          'isPublic', 'status', 'questionIds', 'questionSeed',
+          'countdownSeconds', 'questionIndex', 'questionEndsAtMs',
+          'hostScore', 'guestScore', 'hostCorrectCount', 'guestCorrectCount',
+          'hostAnswered', 'guestAnswered', 'hostOptionIndex', 'guestOptionIndex',
+          'hostLastPoints', 'guestLastPoints',
           'winnerUid', 'isDraw', 'serverProof', 'createdAt', 'updatedAt'
         ])
         && isValidRoomCode(data.roomCode)
@@ -132,8 +140,22 @@ service cloud.firestore {
         && isValidAvatar(data.guestAvatar)
         && data.isPublic is bool
         && data.status in ['waiting', 'countdown', 'question', 'reveal', 'finished']
+        && data.questionIds is list && data.questionIds.size() == 10
+        && data.questionIds[0] is string && data.questionIds[0].size() >= 1 && data.questionIds[0].size() <= 128
+        && data.questionSeed is int && data.questionSeed >= 1 && data.questionSeed <= 2147483647
+        && data.countdownSeconds is int && data.countdownSeconds >= 0 && data.countdownSeconds <= 5
+        && data.questionIndex is int && data.questionIndex >= 0 && data.questionIndex <= 9
+        && data.questionEndsAtMs is int && data.questionEndsAtMs >= 0 && data.questionEndsAtMs <= 9999999999999
         && isNonNegativeInt(data.hostScore, 50000)
         && isNonNegativeInt(data.guestScore, 50000)
+        && isNonNegativeInt(data.hostCorrectCount, 10)
+        && isNonNegativeInt(data.guestCorrectCount, 10)
+        && data.hostAnswered is bool
+        && data.guestAnswered is bool
+        && data.hostOptionIndex is int && data.hostOptionIndex >= -1 && data.hostOptionIndex <= 3
+        && data.guestOptionIndex is int && data.guestOptionIndex >= -1 && data.guestOptionIndex <= 3
+        && isNonNegativeInt(data.hostLastPoints, 5000)
+        && isNonNegativeInt(data.guestLastPoints, 5000)
         && data.winnerUid is string && data.winnerUid.size() <= 128
         && data.isDraw is bool
         && data.serverProof is string && data.serverProof.size() <= 128
@@ -209,7 +231,10 @@ service cloud.firestore {
     match /duels/{roomCode} {
       allow get: if isValidRoomCode(roomCode) && isVerifiedSignedIn();
 
-      allow list: if false;
+      allow list: if isVerifiedSignedIn()
+        && resource.data.isPublic == true
+        && resource.data.status == 'waiting'
+        && resource.data.guestUid == '';
 
       allow create: if isValidRoomCode(roomCode)
         && isVerifiedSignedIn()
@@ -217,8 +242,17 @@ service cloud.firestore {
         && incoming().hostUid == request.auth.uid
         && incoming().guestUid == ''
         && incoming().status == 'waiting'
+        && incoming().questionIndex == 0
         && incoming().hostScore == 0
         && incoming().guestScore == 0
+        && incoming().hostCorrectCount == 0
+        && incoming().guestCorrectCount == 0
+        && incoming().hostAnswered == false
+        && incoming().guestAnswered == false
+        && incoming().hostOptionIndex == -1
+        && incoming().guestOptionIndex == -1
+        && incoming().hostLastPoints == 0
+        && incoming().guestLastPoints == 0
         && incoming().winnerUid == ''
         && incoming().isDraw == false
         && incoming().serverProof == ''
@@ -232,12 +266,15 @@ service cloud.firestore {
         && isValidDuelRoom(incoming(), roomCode)
         && incoming().roomCode == existing().roomCode
         && incoming().hostUid == existing().hostUid
+        && incoming().isPublic == existing().isPublic
+        && incoming().questionIds == existing().questionIds
+        && incoming().questionSeed == existing().questionSeed
         && incoming().createdAt == existing().createdAt
         && incoming().updatedAt == request.time
         && (
           // Action 1: Second player joins active unjoined duel
           (
-            existing().status != 'finished'
+            existing().status == 'waiting'
             && existing().guestUid == ''
             && incoming().guestUid == request.auth.uid
             && request.auth.uid != existing().hostUid
@@ -246,14 +283,42 @@ service cloud.firestore {
               'guestUid', 'guestName', 'guestCountryCode', 'guestAvatar', 'updatedAt'
             ])
           )
-          // Action 2: Either participant syncs active duel phase
+          // Action 2: Either participant advances active duel phase/timer
           || (
             (existing().hostUid == request.auth.uid || (existing().guestUid != '' && existing().guestUid == request.auth.uid))
             && incoming().guestUid == existing().guestUid
             && incoming().status in ['waiting', 'countdown', 'question', 'reveal']
-            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'countdownSeconds', 'questionIndex', 'questionEndsAtMs',
+              'hostAnswered', 'guestAnswered', 'hostOptionIndex', 'guestOptionIndex',
+              'hostLastPoints', 'guestLastPoints', 'updatedAt'
+            ])
           )
-          // Action 3: Either participant records server-verified final duel outcome (terminal lock afterwards)
+          // Action 3: Host submits their answer for current question
+          || (
+            existing().hostUid == request.auth.uid
+            && existing().status == 'question'
+            && incoming().status == existing().status
+            && incoming().guestUid == existing().guestUid
+            && incoming().hostScore >= existing().hostScore
+            && incoming().hostCorrectCount >= existing().hostCorrectCount
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'hostScore', 'hostCorrectCount', 'hostAnswered', 'hostOptionIndex', 'hostLastPoints', 'updatedAt'
+            ])
+          )
+          // Action 4: Guest submits their answer for current question
+          || (
+            existing().guestUid != '' && existing().guestUid == request.auth.uid
+            && existing().status == 'question'
+            && incoming().status == existing().status
+            && incoming().guestUid == existing().guestUid
+            && incoming().guestScore >= existing().guestScore
+            && incoming().guestCorrectCount >= existing().guestCorrectCount
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'guestScore', 'guestCorrectCount', 'guestAnswered', 'guestOptionIndex', 'guestLastPoints', 'updatedAt'
+            ])
+          )
+          // Action 5: Either participant records verified final duel outcome (terminal lock afterwards)
           || (
             (existing().hostUid == request.auth.uid || (existing().guestUid != '' && existing().guestUid == request.auth.uid))
             && incoming().guestUid == existing().guestUid
@@ -261,7 +326,8 @@ service cloud.firestore {
             && incoming().serverProof.size() >= 16
             && (incoming().winnerUid == '' || incoming().winnerUid == existing().hostUid || incoming().winnerUid == existing().guestUid)
             && incoming().diff(existing()).affectedKeys().hasOnly([
-              'status', 'hostScore', 'guestScore', 'winnerUid', 'isDraw', 'serverProof', 'updatedAt'
+              'status', 'hostScore', 'guestScore', 'hostCorrectCount', 'guestCorrectCount',
+              'winnerUid', 'isDraw', 'serverProof', 'updatedAt'
             ])
           )
         );

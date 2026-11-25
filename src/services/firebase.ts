@@ -116,8 +116,39 @@ export function subscribeToAuth(callback: (user: User | null) => void): () => vo
   return onAuthStateChanged(auth, callback);
 }
 
+export async function ensureFirebaseUser(timeoutMs = 5000): Promise<User | null> {
+  if (auth.currentUser) {
+    return auth.currentUser;
+  }
+
+  let timerId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<null>((resolve) => {
+    timerId = setTimeout(() => resolve(null), timeoutMs);
+  });
+
+  try {
+    const user = await Promise.race([
+      (async (): Promise<User | null> => {
+        if (typeof (auth as unknown as { authStateReady?: () => Promise<void> }).authStateReady === 'function') {
+          await auth.authStateReady();
+        }
+        if (auth.currentUser) return auth.currentUser;
+        const cred = await signInAnonymously(auth);
+        return cred.user;
+      })(),
+      timeoutPromise,
+    ]);
+    return user;
+  } catch (err) {
+    console.warn('ensureFirebaseUser warning:', err);
+    return auth.currentUser;
+  } finally {
+    if (timerId !== undefined) clearTimeout(timerId);
+  }
+}
+
 export async function getFirebaseIdToken(forceRefresh = false): Promise<string | null> {
-  const user = auth.currentUser;
+  const user = auth.currentUser || (await ensureFirebaseUser(3000));
   if (!user) return null;
   try {
     return await user.getIdToken(forceRefresh);
@@ -133,6 +164,20 @@ export function getCurrentIsoWeekKey(now = new Date()): string {
   const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
   const weekNo = Math.ceil(((utc.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   return `${utc.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+export function getCurrentWeekEndsAtMs(now = new Date()): number {
+  const dayNum = now.getUTCDay() || 7; // 1=Mon .. 7=Sun
+  const daysUntilNextMonday = 8 - dayNum;
+  return Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() + daysUntilNextMonday,
+    0,
+    0,
+    0,
+    0
+  );
 }
 
 export interface CloudPlayerDoc {
@@ -244,8 +289,9 @@ export async function syncPlayerProfileToFirestore(
   profile: PlayerProfile,
   user: User | null = auth.currentUser
 ): Promise<CloudPlayerDoc | null> {
-  if (!user) return null;
-  const uid = user.uid;
+  const resolvedUser = user || (await ensureFirebaseUser(4000));
+  if (!resolvedUser) return null;
+  const uid = resolvedUser.uid;
   const path = `players/${uid}`;
   const docRef = doc(db, 'players', uid);
 
@@ -348,9 +394,10 @@ export async function syncPlayerProfileToFirestore(
   }
 }
 
-export async function fetchPublicPlayersFromFirestore(maxCount = 50): Promise<CloudPlayerDoc[]> {
-  if (!auth.currentUser) return [];
-  const path = 'players';
+export async function fetchPublicPlayersFromFirestore(maxCount = 200): Promise<CloudPlayerDoc[]> {
+  const user = auth.currentUser || (await ensureFirebaseUser(4000));
+  if (!user) return [];
+
   try {
     const q = query(
       collection(db, 'players'),
@@ -360,8 +407,139 @@ export async function fetchPublicPlayersFromFirestore(maxCount = 50): Promise<Cl
     );
     const snap = await getDocs(q);
     return snap.docs.map((d) => d.data() as CloudPlayerDoc);
-  } catch (error) {
-    console.warn('Firestore leaderboard query fallback:', error);
-    return [];
+  } catch (err) {
+    // Fallback without orderBy in case composite index is unavailable
+    try {
+      const fallbackQ = query(
+        collection(db, 'players'),
+        where('isPublic', '==', true),
+        limit(maxCount)
+      );
+      const snap = await getDocs(fallbackQ);
+      return snap.docs.map((d) => d.data() as CloudPlayerDoc);
+    } catch (fallbackErr) {
+      console.warn('Firestore leaderboard query fallback failed:', err, fallbackErr);
+      return [];
+    }
   }
+}
+
+export async function buildLeaderboardFromFirestore(
+  profile?: PlayerProfile | null,
+  filterCountryCode?: string
+): Promise<import('../types/quiz').LeaderboardResponse | null> {
+  const user = auth.currentUser || (await ensureFirebaseUser(4000));
+  if (!user) return null;
+
+  const docs = await fetchPublicPlayersFromFirestore(200);
+  if (docs.length === 0 && !profile) return null;
+
+  const currentWeekKey = getCurrentIsoWeekKey();
+  const weekEndsAt = getCurrentWeekEndsAtMs();
+  const myUid = user.uid;
+
+  const entriesMap = new Map<string, import('../types/quiz').LeaderboardEntry>();
+
+  for (const d of docs) {
+    const isMe = d.uid === myUid || (profile?.id ? d.uid === profile.id : false);
+    const docWeekly = d.weekKey === currentWeekKey ? clampInt(d.weeklyScore, 500000) : 0;
+
+    entriesMap.set(d.uid, {
+      id: d.uid,
+      name:
+        isMe && profile?.name
+          ? profile.name
+          : sanitizeNameLocal(d.name),
+      countryCode:
+        isMe && profile?.countryCode
+          ? sanitizeCountryCode(profile.countryCode)
+          : sanitizeCountryCode(d.countryCode),
+      avatar: isMe && profile?.avatar ? sanitizeAvatar(profile.avatar) : sanitizeAvatar(d.avatar),
+      totalScore: isMe
+        ? Math.max(clampInt(d.totalScore, 5000000), clampInt(profile?.totalScore, 5000000))
+        : clampInt(d.totalScore, 5000000),
+      bestGameScore: isMe
+        ? Math.max(clampInt(d.bestGameScore, 50000), clampInt(profile?.bestGameScore, 50000))
+        : clampInt(d.bestGameScore, 50000),
+      weeklyScore: isMe
+        ? Math.max(docWeekly, clampInt(profile?.weeklyScore, 500000))
+        : docWeekly,
+      streak: isMe
+        ? Math.max(clampInt(d.streak, 2000), clampInt(profile?.streak, 2000))
+        : clampInt(d.streak, 2000),
+      diasporaScore: isMe
+        ? Math.max(clampInt(d.diasporaScore, 5000000), clampInt(profile?.diasporaScore, 5000000))
+        : clampInt(d.diasporaScore, 5000000),
+      isCurrentPlayer: isMe,
+    });
+  }
+
+  if (profile && !entriesMap.has(myUid)) {
+    entriesMap.set(myUid, {
+      id: myUid,
+      name: sanitizeNameLocal(profile.name),
+      countryCode: sanitizeCountryCode(profile.countryCode),
+      avatar: sanitizeAvatar(profile.avatar),
+      totalScore: clampInt(profile.totalScore, 5000000),
+      bestGameScore: clampInt(profile.bestGameScore, 50000),
+      weeklyScore: clampInt(profile.weeklyScore, 500000),
+      streak: clampInt(profile.streak, 2000),
+      diasporaScore: clampInt(profile.diasporaScore, 5000000),
+      isCurrentPlayer: true,
+    });
+  }
+
+  const allEntries = Array.from(entriesMap.values());
+  if (allEntries.length === 0) return null;
+
+  const worldSorted = [...allEntries].sort(
+    (a, b) => b.totalScore - a.totalScore || b.bestGameScore - a.bestGameScore
+  );
+
+  const selectedCountry = sanitizeCountryCode(filterCountryCode || profile?.countryCode || 'GA');
+  const ownCountry = sanitizeCountryCode(profile?.countryCode || selectedCountry);
+
+  const countrySorted = worldSorted.filter((e) => e.countryCode === selectedCountry);
+  const ownCountrySorted = worldSorted.filter((e) => e.countryCode === ownCountry);
+
+  const weeklySorted = [...allEntries].sort(
+    (a, b) => b.weeklyScore - a.weeklyScore || b.totalScore - a.totalScore
+  );
+
+  const diasporaSorted = [...allEntries]
+    .filter((e) => (e.diasporaScore || 0) > 0)
+    .sort(
+      (a, b) =>
+        (b.diasporaScore || 0) - (a.diasporaScore || 0) || b.totalScore - a.totalScore
+    );
+
+  const findRank = (list: import('../types/quiz').LeaderboardEntry[]) => {
+    const idx = list.findIndex((e) => e.isCurrentPlayer || e.id === myUid);
+    return idx >= 0 ? idx + 1 : Math.max(1, list.length);
+  };
+
+  return {
+    weekKey: currentWeekKey,
+    weekEndsAt,
+    worldTop10: worldSorted.slice(0, 10),
+    countryTop10: countrySorted.slice(0, 10),
+    weeklyTop10: weeklySorted.slice(0, 10),
+    diasporaTop10: diasporaSorted.slice(0, 10),
+    diasporaChampion: diasporaSorted[0] || null,
+    weeklyChampion: weeklySorted[0] && weeklySorted[0].weeklyScore > 0 ? weeklySorted[0] : null,
+    playerRanks: {
+      worldRank: findRank(worldSorted),
+      worldTotal: worldSorted.length,
+      countryRank: findRank(ownCountrySorted),
+      countryTotal: ownCountrySorted.length,
+      weeklyRank: findRank(weeklySorted),
+      weeklyTotal: weeklySorted.length,
+      diasporaRank: diasporaSorted.length > 0 ? findRank(diasporaSorted) : undefined,
+    },
+  };
+}
+
+function sanitizeNameLocal(val: unknown): string {
+  const s = typeof val === 'string' ? val.trim().slice(0, 28) : '';
+  return s || 'Champion';
 }

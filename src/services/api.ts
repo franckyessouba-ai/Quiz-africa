@@ -7,6 +7,8 @@ import {
   QuizQuestion,
 } from '../types/quiz';
 import {
+  buildLeaderboardFromFirestore,
+  ensureFirebaseUser,
   getFirebaseIdToken,
   syncPlayerProfileToFirestore,
 } from './firebase';
@@ -392,14 +394,25 @@ export async function syncPlayerWithServer(
     return loadCachedLeaderboard();
   }
   try {
+    const user = await ensureFirebaseUser(4000);
+    let firestoreBoard: LeaderboardResponse | null = null;
+    if (user) {
+      await syncPlayerProfileToFirestore(profile, user).catch(() => null);
+      firestoreBoard = await buildLeaderboardFromFirestore(profile, profile.countryCode).catch(
+        () => null
+      );
+      if (firestoreBoard) {
+        saveCachedLeaderboard(firestoreBoard);
+      }
+    }
+
     const token = await getFirebaseIdToken();
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) {
       headers.Authorization = `Bearer ${token}`;
-      syncPlayerProfileToFirestore(profile).catch(() => null);
     }
 
-    const res = await fetch('/api/player/sync', {
+    const serverRes = await fetch('/api/player/sync', {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -412,11 +425,19 @@ export async function syncPlayerWithServer(
         weeklyScore: profile.weeklyScore,
         streak: profile.streak,
       }),
-    });
-    if (!res.ok) return loadCachedLeaderboard();
-    const data = (await res.json()) as LeaderboardResponse;
-    saveCachedLeaderboard(data);
-    return data;
+    }).catch(() => null);
+
+    if (firestoreBoard) {
+      return firestoreBoard;
+    }
+
+    if (serverRes && serverRes.ok) {
+      const data = (await serverRes.json()) as LeaderboardResponse;
+      saveCachedLeaderboard(data);
+      return data;
+    }
+
+    return loadCachedLeaderboard();
   } catch {
     return loadCachedLeaderboard();
   }
@@ -430,6 +451,15 @@ export async function fetchLeaderboard(
     return loadCachedLeaderboard();
   }
   try {
+    const storedProfile = loadStoredProfile();
+    const firestoreBoard = await buildLeaderboardFromFirestore(storedProfile, countryCode).catch(
+      () => null
+    );
+    if (firestoreBoard) {
+      saveCachedLeaderboard(firestoreBoard);
+      return firestoreBoard;
+    }
+
     const params = new URLSearchParams();
     if (playerId) params.set('playerId', playerId);
     if (countryCode) params.set('countryCode', countryCode);
@@ -481,30 +511,63 @@ export async function submitScoreToServer(params: {
   }
 
   try {
+    const user = await ensureFirebaseUser(4000);
+    let firestoreSaved = false;
+    let firestoreBoard: LeaderboardResponse | null = null;
+
+    if (user) {
+      const synced = await syncPlayerProfileToFirestore(params.profile, user).catch(() => null);
+      if (synced) {
+        firestoreSaved = true;
+        firestoreBoard = await buildLeaderboardFromFirestore(
+          params.profile,
+          params.profile.countryCode
+        ).catch(() => null);
+        if (firestoreBoard) {
+          saveCachedLeaderboard(firestoreBoard);
+        }
+      }
+    }
+
     const token = await getFirebaseIdToken();
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) {
       headers.Authorization = `Bearer ${token}`;
-      syncPlayerProfileToFirestore(params.profile).catch(() => null);
     }
 
     const res = await fetch('/api/score/submit', {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      enqueuePendingScore(payload);
-      return { leaderboard: loadCachedLeaderboard(), queuedOffline: true };
+    }).catch(() => null);
+
+    if (firestoreBoard) {
+      return {
+        leaderboard: firestoreBoard,
+        queuedOffline: false,
+      };
     }
-    const data = await res.json();
-    if (data.leaderboard) {
-      saveCachedLeaderboard(data.leaderboard);
+
+    if (res && res.ok) {
+      const data = await res.json();
+      if (data.leaderboard) {
+        saveCachedLeaderboard(data.leaderboard);
+      }
+      return {
+        leaderboard: data.leaderboard || loadCachedLeaderboard(),
+        queuedOffline: false,
+      };
     }
-    return {
-      leaderboard: data.leaderboard || loadCachedLeaderboard(),
-      queuedOffline: false,
-    };
+
+    if (firestoreSaved) {
+      return {
+        leaderboard: loadCachedLeaderboard(),
+        queuedOffline: false,
+      };
+    }
+
+    enqueuePendingScore(payload);
+    return { leaderboard: loadCachedLeaderboard(), queuedOffline: true };
   } catch {
     enqueuePendingScore(payload);
     return { leaderboard: loadCachedLeaderboard(), queuedOffline: true };
@@ -534,13 +597,22 @@ export async function flushPendingScores(
   const remaining: PendingScoreSubmission[] = [];
 
   try {
+    const user = await ensureFirebaseUser(4000);
+    if (user && latestProfile) {
+      await syncPlayerProfileToFirestore(latestProfile, user).catch(() => null);
+      latestLeaderboard = await buildLeaderboardFromFirestore(
+        latestProfile,
+        latestProfile.countryCode
+      ).catch(() => null);
+      if (latestLeaderboard) {
+        saveCachedLeaderboard(latestLeaderboard);
+      }
+    }
+
     const token = await getFirebaseIdToken();
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) {
       headers.Authorization = `Bearer ${token}`;
-      if (latestProfile) {
-        syncPlayerProfileToFirestore(latestProfile).catch(() => null);
-      }
     }
 
     for (let i = 0; i < queue.length; i++) {
@@ -563,17 +635,23 @@ export async function flushPendingScores(
         if (res.ok) {
           syncedCount += 1;
           const data = await res.json();
-          if (data.leaderboard) {
+          if (!latestLeaderboard && data.leaderboard) {
             latestLeaderboard = data.leaderboard;
             saveCachedLeaderboard(data.leaderboard);
           }
+        } else if (user && latestProfile) {
+          syncedCount += 1;
         } else {
           remaining.push(...queue.slice(i));
           break;
         }
       } catch {
-        remaining.push(...queue.slice(i));
-        break;
+        if (user && latestProfile) {
+          syncedCount += 1;
+        } else {
+          remaining.push(...queue.slice(i));
+          break;
+        }
       }
     }
     savePendingScores(remaining);

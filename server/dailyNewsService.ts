@@ -247,6 +247,26 @@ function pickCuratedFallbackQuestions(
   return result;
 }
 
+let geminiCooldownUntil = 0;
+
+function extractErrorStatus(err: unknown): { code?: number; status?: string; message: string } {
+  const msg = err instanceof Error ? err.message : String(err);
+  let code: number | undefined;
+  let status: string | undefined;
+
+  if (err && typeof err === 'object') {
+    const obj = err as { status?: unknown; code?: unknown };
+    if (typeof obj.status === 'number') code = obj.status;
+    if (typeof obj.code === 'number') code = obj.code;
+    if (typeof obj.status === 'string') status = obj.status;
+  }
+
+  if (code === undefined && msg.includes('429')) code = 429;
+  if (!status && msg.includes('RESOURCE_EXHAUSTED')) status = 'RESOURCE_EXHAUSTED';
+
+  return { code, status, message: msg };
+}
+
 async function generateAfricaNewsWithGemini(
   dateKey: string,
   existingPrompts: string[]
@@ -256,60 +276,88 @@ async function generateAfricaNewsWithGemini(
     return [];
   }
 
-  try {
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
-    });
-
-    const avoidSample = existingPrompts.slice(-40).join(' | ');
-    const prompt = [
-      `Date: ${dateKey}.`,
-      `Generate exactly 10 brand-new multiple-choice quiz questions 100% dedicated to AFRICAN CURRENT AFFAIRS (Actualité Afrique ONLY).`,
-      `STRICT RULES:`,
-      `1. Subjects MUST be 100% African: African football (CAF, AFCON/CAN, CAF Champions League, African national teams & African stars), African music (Afrobeats, Amapiano, Coupé-Décalé, Rumba, Rai, Mbalax, etc.), African politics & summits (AU, ECOWAS, SADC, African leaders/elections), African culture & cinema/festivals, African celebrities/people, and current events across the 54 African countries.`,
-      `2. NEVER include questions focused on Europe, North America, South America, or Asia.`,
-      `3. Use Google Search grounding for real, verifiable recent African news and facts.`,
-      `4. Use valid ISO 2-letter African country codes (e.g. "SN", "CI", "MA", "NG", "GA", "CM", "CD", "ZA", "KE", "EG", etc.) or "AFRICA" for pan-African topics.`,
-      `5. Allowed "category" values ONLY: "football" (African football), "culture" (African music, culture, arts, African people/celebrities), "history" (African political milestones/institutional history), "geography" (African current politics, African states, pan-African economy/events). Include balanced mix across African football, music, politics, culture, and people.`,
-      `6. "difficulty" must vary progressively: 2 questions difficulty 1, 3 questions difficulty 2, 3 questions difficulty 3, 2 questions difficulty 4.`,
-      `7. Every text field ("prompt", each of the 4 "options", and "explanation") MUST be translated accurately into ALL 5 languages: "fr", "en", "es", "pt", "ar".`,
-      `8. All 4 options must be distinct and concise. "correctIndex" must be 0, 1, 2, or 3.`,
-      avoidSample ? `9. Do NOT repeat any of these previous questions: ${avoidSample}` : '',
-      `Return ONLY a valid JSON array of 10 objects with this exact structure (no markdown commentary):`,
-      `[{"countryCode":"SN","category":"football","difficulty":2,"prompt":{"fr":"...","en":"...","es":"...","pt":"...","ar":"..."},"options":[{"fr":"...","en":"...","es":"...","pt":"...","ar":"..."},...],"correctIndex":0,"explanation":{"fr":"...","en":"...","es":"...","pt":"...","ar":"..."}}]`,
-    ]
-      .filter(Boolean)
-      .join('\n');
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
-      contents: prompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-      },
-    });
-
-    const rawText = response.text || '';
-    const parsedItems = extractJsonArray(rawText);
-    const validated: QuizQuestion[] = [];
-    const seenPrompts = new Set(existingPrompts.map((p) => p.trim().toLowerCase()));
-
-    for (let i = 0; i < parsedItems.length; i++) {
-      const sanitized = sanitizeGeneratedQuestion(parsedItems[i], dateKey, i);
-      if (!sanitized) continue;
-      const pKey = sanitized.prompt.fr.trim().toLowerCase();
-      if (seenPrompts.has(pKey)) continue;
-      seenPrompts.add(pKey);
-      validated.push(sanitized);
-      if (validated.length === 10) break;
-    }
-
-    return validated;
-  } catch (err) {
-    console.warn('Gemini African news generation skipped/fallback used:', err);
+  if (Date.now() < geminiCooldownUntil) {
     return [];
   }
+
+  const ai = new GoogleGenAI({
+    apiKey,
+    httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
+  });
+
+  const avoidSample = existingPrompts.slice(-40).join(' | ');
+  const prompt = [
+    `Date: ${dateKey}.`,
+    `Generate exactly 10 brand-new multiple-choice quiz questions 100% dedicated to AFRICAN CURRENT AFFAIRS (Actualité Afrique ONLY).`,
+    `STRICT RULES:`,
+    `1. Subjects MUST be 100% African: African football (CAF, AFCON/CAN, CAF Champions League, African national teams & African stars), African music (Afrobeats, Amapiano, Coupé-Décalé, Rumba, Rai, Mbalax, etc.), African politics & summits (AU, ECOWAS, SADC, African leaders/elections), African culture & cinema/festivals, African celebrities/people, and current events across the 54 African countries.`,
+    `2. NEVER include questions focused on Europe, North America, South America, or Asia.`,
+    `3. Use Google Search grounding for real, verifiable recent African news and facts.`,
+    `4. Use valid ISO 2-letter African country codes (e.g. "SN", "CI", "MA", "NG", "GA", "CM", "CD", "ZA", "KE", "EG", etc.) or "AFRICA" for pan-African topics.`,
+    `5. Allowed "category" values ONLY: "football" (African football), "culture" (African music, culture, arts, African people/celebrities), "history" (African political milestones/institutional history), "geography" (African current politics, African states, pan-African economy/events). Include balanced mix across African football, music, politics, culture, and people.`,
+    `6. "difficulty" must vary progressively: 2 questions difficulty 1, 3 questions difficulty 2, 3 questions difficulty 3, 2 questions difficulty 4.`,
+    `7. Every text field ("prompt", each of the 4 "options", and "explanation") MUST be translated accurately into ALL 5 languages: "fr", "en", "es", "pt", "ar".`,
+    `8. All 4 options must be distinct and concise. "correctIndex" must be 0, 1, 2, or 3.`,
+    avoidSample ? `9. Do NOT repeat any of these previous questions: ${avoidSample}` : '',
+    `Return ONLY a valid JSON array of 10 objects with this exact structure (no markdown commentary):`,
+    `[{"countryCode":"SN","category":"football","difficulty":2,"prompt":{"fr":"...","en":"...","es":"...","pt":"...","ar":"..."},"options":[{"fr":"...","en":"...","es":"...","pt":"...","ar":"..."},...],"correctIndex":0,"explanation":{"fr":"...","en":"...","es":"...","pt":"...","ar":"..."}}]`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const maxAttempts = 2;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-4-hydrogen',
+        contents: prompt,
+        config: {
+          tools: [{ googleSearch: {} }],
+        },
+      });
+
+      const rawText = response.text || '';
+      const parsedItems = extractJsonArray(rawText);
+      const validated: QuizQuestion[] = [];
+      const seenPrompts = new Set(existingPrompts.map((p) => p.trim().toLowerCase()));
+
+      for (let i = 0; i < parsedItems.length; i++) {
+        const sanitized = sanitizeGeneratedQuestion(parsedItems[i], dateKey, i);
+        if (!sanitized) continue;
+        const pKey = sanitized.prompt.fr.trim().toLowerCase();
+        if (seenPrompts.has(pKey)) continue;
+        seenPrompts.add(pKey);
+        validated.push(sanitized);
+        if (validated.length === 10) break;
+      }
+
+      return validated;
+    } catch (err) {
+      const info = extractErrorStatus(err);
+      const isQuotaExhausted = info.code === 429 || info.status === 'RESOURCE_EXHAUSTED';
+      if (isQuotaExhausted) {
+        // Pause further Gemini calls for 60 minutes and use curated African news bank
+        geminiCooldownUntil = Date.now() + 60 * 60 * 1000;
+        console.info(
+          `[dailyNews] Gemini quota reached (${dateKey}); serving curated African news bank.`
+        );
+        return [];
+      }
+
+      const isTransient = info.code !== undefined && info.code >= 500;
+      if (isTransient && attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 1200 * attempt));
+        continue;
+      }
+
+      console.info(
+        `[dailyNews] Using curated African news bank for ${dateKey} (Gemini unavailable).`
+      );
+      return [];
+    }
+  }
+
+  return [];
 }
 
 export async function getOrCreateDailyNewsPackage(rawDateKey?: string): Promise<{

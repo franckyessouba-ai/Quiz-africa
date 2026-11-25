@@ -6,7 +6,11 @@ import {defineConfig} from 'vite';
 import {VitePWA} from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
+  const pwaDevEnabled = process.env.DISABLE_HMR !== 'true';
   return {
+    define: {
+      __PWA_DEV_ENABLED__: JSON.stringify(pwaDevEnabled),
+    },
     plugins: [
       react(),
       tailwindcss(),
@@ -82,7 +86,7 @@ export default defineConfig(() => {
           ],
         },
         devOptions: {
-          enabled: true,
+          enabled: process.env.DISABLE_HMR !== 'true',
           type: 'module',
         },
       }),

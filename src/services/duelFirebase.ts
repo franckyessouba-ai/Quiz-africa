@@ -1,8 +1,9 @@
-import type { User } from 'firebase/auth';
+import { signInAnonymously, type User } from 'firebase/auth';
 import {
   collection,
   doc,
   getDoc,
+  getDocFromServer,
   limit,
   onSnapshot,
   orderBy,
@@ -33,13 +34,35 @@ export interface FirestoreDuelDiagnostic {
   checkedAt: number;
 }
 
-export async function checkFirestoreDuelsConnection(): Promise<FirestoreDuelDiagnostic> {
+export async function checkFirestoreDuelsConnection(
+  timeoutMs = 5000
+): Promise<FirestoreDuelDiagnostic> {
   const t0 = Date.now();
   const dbId = (firebaseConfig as { firestoreDatabaseId?: string }).firestoreDatabaseId || 'default';
   const projId = (firebaseConfig as { projectId?: string }).projectId || 'quiz-gabon-69577';
 
+  let timerId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timerId = setTimeout(() => {
+      reject(
+        new Error(
+          `Timeout (${Math.round(timeoutMs / 1000)}s) : Cloud Firestore n'a pas répondu sur la collection 'duels' (base: ${dbId}).`
+        )
+      );
+    }, timeoutMs);
+  });
+
   try {
-    const snap = await getDoc(doc(db, 'duels', 'DIAG01'));
+    await Promise.race([
+      (async () => {
+        if (!auth.currentUser) {
+          await signInAnonymously(auth);
+        }
+        await getDocFromServer(doc(db, 'duels', 'DIAG01'));
+      })(),
+      timeoutPromise,
+    ]);
+
     return {
       status: 'connected',
       databaseId: dbId,
@@ -49,18 +72,25 @@ export async function checkFirestoreDuelsConnection(): Promise<FirestoreDuelDiag
       checkedAt: Date.now(),
     };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const code =
+      err && typeof err === 'object' && 'code' in err ? String((err as { code: unknown }).code) : '';
+    const rawMsg = err instanceof Error ? err.message : String(err);
+    const formattedMsg = code && !rawMsg.includes(code) ? `[${code}] ${rawMsg}` : rawMsg;
+
     return {
       status: 'error',
       databaseId: dbId,
       projectId: projId,
       collectionName: 'duels',
       responseTimeMs: Date.now() - t0,
-      errorMessage: msg,
+      errorMessage: formattedMsg,
       checkedAt: Date.now(),
     };
+  } finally {
+    if (timerId !== undefined) clearTimeout(timerId);
   }
 }
+
 
 export interface FirestoreDuelRoomDoc {
   roomCode: string;

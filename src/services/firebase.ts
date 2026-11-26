@@ -394,7 +394,7 @@ export async function syncPlayerProfileToFirestore(
   }
 }
 
-export async function fetchPublicPlayersFromFirestore(maxCount = 200): Promise<CloudPlayerDoc[]> {
+export async function fetchPublicPlayersFromFirestore(maxCount = 1000): Promise<CloudPlayerDoc[]> {
   const user = auth.currentUser || (await ensureFirebaseUser(4000));
   if (!user) return [];
 
@@ -431,7 +431,7 @@ export async function buildLeaderboardFromFirestore(
   const user = auth.currentUser || (await ensureFirebaseUser(4000));
   if (!user) return null;
 
-  const docs = await fetchPublicPlayersFromFirestore(200);
+  const docs = await fetchPublicPlayersFromFirestore(1000);
   if (docs.length === 0 && !profile) return null;
 
   const currentWeekKey = getCurrentIsoWeekKey();
@@ -513,10 +513,18 @@ export async function buildLeaderboardFromFirestore(
         (b.diasporaScore || 0) - (a.diasporaScore || 0) || b.totalScore - a.totalScore
     );
 
+  const diasporaAllSorted = [...allEntries].sort(
+    (a, b) =>
+      (b.diasporaScore || 0) - (a.diasporaScore || 0) || b.totalScore - a.totalScore
+  );
+
   const findRank = (list: import('../types/quiz').LeaderboardEntry[]) => {
     const idx = list.findIndex((e) => e.isCurrentPlayer || e.id === myUid);
     return idx >= 0 ? idx + 1 : Math.max(1, list.length);
   };
+
+  const currentPlayerEntry =
+    allEntries.find((e) => e.isCurrentPlayer || e.id === myUid) || null;
 
   return {
     weekKey: currentWeekKey,
@@ -527,6 +535,7 @@ export async function buildLeaderboardFromFirestore(
     diasporaTop10: diasporaSorted.slice(0, 10),
     diasporaChampion: diasporaSorted[0] || null,
     weeklyChampion: weeklySorted[0] && weeklySorted[0].weeklyScore > 0 ? weeklySorted[0] : null,
+    currentPlayerEntry,
     playerRanks: {
       worldRank: findRank(worldSorted),
       worldTotal: worldSorted.length,
@@ -534,7 +543,8 @@ export async function buildLeaderboardFromFirestore(
       countryTotal: ownCountrySorted.length,
       weeklyRank: findRank(weeklySorted),
       weeklyTotal: weeklySorted.length,
-      diasporaRank: diasporaSorted.length > 0 ? findRank(diasporaSorted) : undefined,
+      diasporaRank: findRank(diasporaAllSorted),
+      diasporaTotal: diasporaAllSorted.length,
     },
   };
 }

@@ -9,6 +9,7 @@ export interface AvatarOption {
 }
 
 export const TROPHY_CREST_IMAGE = '/src/assets/images/africa_trophy_crest_1795473637711.jpg';
+export const HOME_BACKDROP_IMAGE = '/src/assets/images/africa_quiz_backdrop_1795728946559.jpg';
 
 export const AVATAR_OPTIONS: AvatarOption[] = [
   {

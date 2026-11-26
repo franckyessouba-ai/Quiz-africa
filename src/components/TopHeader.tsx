@@ -96,7 +96,7 @@ export function TopHeader({
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">
+      <div className="max-w-5xl mx-auto px-3 sm:px-5 py-1.5 sm:py-2 flex items-center justify-between gap-2">
         {/* Player identity cluster */}
         <button
           type="button"

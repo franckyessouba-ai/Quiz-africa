@@ -194,12 +194,16 @@ function buildLeaderboardResponse(
       (a, b) => (b.diasporaScore || 0) - (a.diasporaScore || 0) || (b.bestDiasporaScore || 0) - (a.bestDiasporaScore || 0)
     );
 
+  const diasporaAllSorted = [...store.players].sort(
+    (a, b) => (b.diasporaScore || 0) - (a.diasporaScore || 0) || b.totalScore - a.totalScore
+  );
+
   const worldRankIdx = currentPlayer ? worldSorted.findIndex((p) => p.id === currentPlayer.id) : -1;
   const countryRankIdx = currentPlayer
     ? countrySorted.findIndex((p) => p.id === currentPlayer.id)
     : -1;
   const weeklyRankIdx = currentPlayer ? weeklySorted.findIndex((p) => p.id === currentPlayer.id) : -1;
-  const diasporaRankIdx = currentPlayer ? diasporaSorted.findIndex((p) => p.id === currentPlayer.id) : -1;
+  const diasporaRankIdx = currentPlayer ? diasporaAllSorted.findIndex((p) => p.id === currentPlayer.id) : -1;
 
   return {
     weekKey,
@@ -210,6 +214,7 @@ function buildLeaderboardResponse(
     weeklyChampion: weeklySorted.length > 0 ? toEntry(weeklySorted[0], playerId) : null,
     diasporaTop10: diasporaSorted.slice(0, 10).map((p) => toEntry(p, playerId)),
     diasporaChampion: diasporaSorted.length > 0 ? toEntry(diasporaSorted[0], playerId) : null,
+    currentPlayerEntry: currentPlayer ? toEntry(currentPlayer, playerId) : null,
     playerRanks: {
       worldRank: worldRankIdx >= 0 ? worldRankIdx + 1 : worldSorted.length + 1,
       worldTotal: worldSorted.length,
@@ -217,7 +222,8 @@ function buildLeaderboardResponse(
       countryTotal: Math.max(countrySorted.length, 1),
       weeklyRank: weeklyRankIdx >= 0 ? weeklyRankIdx + 1 : weeklySorted.length + 1,
       weeklyTotal: weeklySorted.length,
-      diasporaRank: diasporaRankIdx >= 0 ? diasporaRankIdx + 1 : diasporaSorted.length + 1,
+      diasporaRank: diasporaRankIdx >= 0 ? diasporaRankIdx + 1 : diasporaAllSorted.length + 1,
+      diasporaTotal: diasporaAllSorted.length,
     },
   };
 }

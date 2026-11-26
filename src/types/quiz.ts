@@ -176,6 +176,7 @@ export interface LeaderboardResponse {
   diasporaTop10?: LeaderboardEntry[];
   diasporaChampion?: LeaderboardEntry | null;
   weeklyChampion: LeaderboardEntry | null;
+  currentPlayerEntry?: LeaderboardEntry | null;
   playerRanks: {
     worldRank: number;
     worldTotal: number;
@@ -184,6 +185,7 @@ export interface LeaderboardResponse {
     weeklyRank: number;
     weeklyTotal: number;
     diasporaRank?: number;
+    diasporaTotal?: number;
   };
 }
 

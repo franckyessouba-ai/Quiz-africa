@@ -1,4 +1,5 @@
 import type { User } from 'firebase/auth';
+import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useState } from 'react';
 import { DailyChallengeHub } from './components/DailyChallengeHub';
 import { DuelScreen } from './components/DuelScreen';
@@ -10,7 +11,9 @@ import { ResultScreen } from './components/ResultScreen';
 import { SetupGameScreen } from './components/SetupGameScreen';
 import { TopHeader } from './components/TopHeader';
 import { WeeklyCompetitionScreen } from './components/WeeklyCompetitionScreen';
+import { HOME_BACKDROP_IMAGE, TROPHY_CREST_IMAGE } from './data/avatars';
 import { AFRICAN_NEWS_QUESTIONS } from './data/africanNewsQuestions';
+import { getUiText } from './i18n/translations';
 import {
   ALL_QUESTIONS,
   getLocalDateKey,
@@ -143,7 +146,14 @@ export default function App() {
   const [phoneNewsQuestions, setPhoneNewsQuestions] = useState<QuizQuestion[]>([]);
 
   const activeLanguage: Language = player ? player.language : previewLang;
+  const activeUiText = getUiText(activeLanguage);
+  const [showSplash, setShowSplash] = useState(() => !initialState.urlDuelCode);
 
+  useEffect(() => {
+    if (!showSplash) return;
+    const timer = setTimeout(() => setShowSplash(false), 950);
+    return () => clearTimeout(timer);
+  }, [showSplash]);
 
   // Sync HTML dir & lang attributes (RTL for Arabic)
   useEffect(() => {
@@ -484,36 +494,104 @@ export default function App() {
     }
   };
 
+  const splashOverlay = (
+    <AnimatePresence>
+      {showSplash && (
+        <motion.div
+          key="qa-opening-splash"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          onClick={() => setShowSplash(false)}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0A100D] text-center px-6 cursor-pointer select-none overflow-hidden"
+        >
+          <img
+            src={HOME_BACKDROP_IMAGE}
+            alt=""
+            className="pointer-events-none absolute inset-0 w-full h-full object-cover object-center opacity-70"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#0A100D]/75 via-[#0A100D]/30 to-[#0A100D]/90" />
+
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="relative flex flex-col items-center gap-3"
+          >
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-[#F5B700] bg-[#0A100D] shadow-[0_0_40px_rgba(245,183,0,0.35)]">
+              <img
+                src={TROPHY_CREST_IMAGE}
+                alt={activeUiText.appTitle}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            <h2 className="font-display font-black text-4xl sm:text-5xl tracking-wider uppercase leading-none drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
+              <span className="text-white">QUIZ </span>
+              <span className="text-[#F5B700]">AFRICA</span>
+            </h2>
+
+            <p className="font-display font-semibold text-sm sm:text-base text-[#D6E5DC] tracking-wide">
+              {activeUiText.appSubtitle}
+            </p>
+          </motion.div>
+
+          <div className="absolute bottom-0 inset-x-0 h-[4px] panafrica-stripe" />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   if (!player || screen === 'onboarding') {
     return (
-      <OnboardingScreen
-        mode="create"
-        initialLanguage={previewLang}
-        onLanguagePreview={(lang) => setPreviewLang(lang)}
-        onSubmit={handleCreateProfile}
-      />
+      <>
+        {splashOverlay}
+        <OnboardingScreen
+          mode="create"
+          initialLanguage={previewLang}
+          onLanguagePreview={(lang) => setPreviewLang(lang)}
+          onSubmit={handleCreateProfile}
+        />
+      </>
     );
   }
 
   if (screen === 'editProfile') {
     return (
-      <OnboardingScreen
-        mode="edit"
-        initialName={player.name}
-        initialLanguage={player.language}
-        initialCountryCode={player.countryCode}
-        initialAvatar={player.avatar}
-        onLanguagePreview={handleChangeLanguage}
-        onSubmit={handleUpdateProfile}
-        onCancel={() => setScreen('home')}
-      />
+      <>
+        {splashOverlay}
+        <OnboardingScreen
+          mode="edit"
+          initialName={player.name}
+          initialLanguage={player.language}
+          initialCountryCode={player.countryCode}
+          initialAvatar={player.avatar}
+          onLanguagePreview={handleChangeLanguage}
+          onSubmit={handleUpdateProfile}
+          onCancel={() => setScreen('home')}
+        />
+      </>
     );
   }
 
   const isPlaying = screen === 'playingNormal' || screen === 'playingDaily';
+  const isFixedViewportScreen =
+    screen === 'home' ||
+    screen === 'setupGame' ||
+    screen === 'dailyHub' ||
+    screen === 'leaderboard' ||
+    screen === 'weekly';
 
   return (
-    <div className="min-h-screen africa-arena-bg text-[var(--qa-text)]">
+    <div
+      className={
+        isFixedViewportScreen
+          ? 'h-[100dvh] flex flex-col overflow-hidden africa-arena-bg text-[var(--qa-text)]'
+          : 'min-h-screen africa-arena-bg text-[var(--qa-text)]'
+      }
+    >
+      {splashOverlay}
       <TopHeader
         player={player}
         firebaseUser={firebaseUser}

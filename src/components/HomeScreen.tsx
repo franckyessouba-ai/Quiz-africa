@@ -2,6 +2,7 @@ import { CalendarDays, Crown, Play, Swords, Trophy } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { HOME_BACKDROP_IMAGE, TROPHY_CREST_IMAGE } from '../data/avatars';
+import { SELAH_BRAND } from '../data/brand';
 import { getLocalDateKey } from '../data/questionBank';
 import { formatOrdinal, getUiText } from '../i18n/translations';
 import { Language, LeaderboardResponse, PlayerProfile } from '../types/quiz';
@@ -17,6 +18,7 @@ interface HomeScreenProps {
   onLeaderboardClick: () => void;
   onWeeklyClick: () => void;
   onChangeLanguage: (lang: Language) => void;
+  onOpenAbout: () => void;
 }
 
 function getTimeUntilMidnight(): string {
@@ -37,6 +39,7 @@ export function HomeScreen({
   onDuelClick,
   onLeaderboardClick,
   onWeeklyClick,
+  onOpenAbout,
 }: HomeScreenProps) {
   const [crestError, setCrestError] = useState(false);
   const [backdropError, setBackdropError] = useState(false);
@@ -61,7 +64,7 @@ export function HomeScreen({
   const levelInfo = getPlayerLevelInfo(player.totalScore, player.language);
 
   return (
-    <main className="relative isolate w-full flex-1 min-h-0 flex flex-col justify-between overflow-x-hidden overflow-y-auto px-3.5 sm:px-6 pt-3 sm:pt-5 pb-3.5 sm:pb-5">
+    <main className="relative isolate w-full flex-1 min-h-0 flex flex-col justify-between overflow-x-hidden overflow-y-auto px-3.5 sm:px-6 pt-2.5 sm:pt-4 pb-2.5 sm:pb-4">
       {/* Full-bleed Atmospheric Background Artwork */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         {!backdropError && (
@@ -107,10 +110,10 @@ export function HomeScreen({
       </motion.header>
 
       {/* Center Breathing Zone so background African continent graphic shines cleanly */}
-      <div className="flex-1 min-h-[24px] sm:min-h-[48px]" aria-hidden="true" />
+      <div className="flex-1 min-h-[12px] sm:min-h-[32px]" aria-hidden="true" />
 
       {/* Bottom Action Dock */}
-      <div className="w-full max-w-lg mx-auto space-y-2.5 sm:space-y-3 shrink-0">
+      <div className="w-full max-w-lg mx-auto space-y-2 sm:space-y-2.5 shrink-0">
         {/* Single-line Clean Stats Strip */}
         <div className="flex items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm px-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">
           <span className="font-mono-num">
@@ -147,7 +150,7 @@ export function HomeScreen({
         </div>
 
         {/* 5-Mode Action Grid (Exact Order: Mode Normal, Duel, Défi du jour, Classement, Compétition) */}
-        <section className="grid grid-cols-2 gap-2.5 sm:gap-3">
+        <section className="grid grid-cols-2 gap-2 sm:gap-2.5">
           {/* 1. MODE NORMAL */}
           <motion.button
             whileHover={{ scale: 1.015, y: -1 }}
@@ -157,7 +160,7 @@ export function HomeScreen({
               soundEngine.playClick();
               onPlayClick();
             }}
-            className="group min-h-[70px] sm:min-h-[82px] px-3.5 py-3 rounded-2xl bg-gradient-to-br from-[#009E49] to-[#006B31] border border-[#22C55E]/55 text-start shadow-[0_10px_24px_rgba(0,158,73,0.3)] flex items-center gap-3 transition-all"
+            className="group min-h-[64px] sm:min-h-[76px] px-3 py-2.5 rounded-2xl bg-gradient-to-br from-[#009E49] to-[#006B31] border border-[#22C55E]/55 text-start shadow-[0_10px_24px_rgba(0,158,73,0.3)] flex items-center gap-2.5 sm:gap-3 transition-all"
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <Play className="w-5 h-5 text-[#FFF3B0] fill-current" />
@@ -181,7 +184,7 @@ export function HomeScreen({
               soundEngine.playClick();
               onDuelClick();
             }}
-            className="group min-h-[70px] sm:min-h-[82px] px-3.5 py-3 rounded-2xl bg-gradient-to-br from-[#0F6CBD] to-[#00407A] border border-[#38BDF8]/50 text-start shadow-[0_10px_24px_rgba(0,114,206,0.28)] flex items-center gap-3 transition-all"
+            className="group min-h-[64px] sm:min-h-[76px] px-3 py-2.5 rounded-2xl bg-gradient-to-br from-[#0F6CBD] to-[#00407A] border border-[#38BDF8]/50 text-start shadow-[0_10px_24px_rgba(0,114,206,0.28)] flex items-center gap-2.5 sm:gap-3 transition-all"
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <Swords className="w-5 h-5 text-white" />
@@ -205,7 +208,7 @@ export function HomeScreen({
               soundEngine.playClick();
               onDailyClick();
             }}
-            className="group min-h-[70px] sm:min-h-[82px] px-3.5 py-3 rounded-2xl bg-gradient-to-br from-[#D98200] to-[#964B00] border border-[#F5B700]/65 text-start shadow-[0_10px_24px_rgba(245,183,0,0.2)] flex items-center gap-3 transition-all"
+            className="group min-h-[64px] sm:min-h-[76px] px-3 py-2.5 rounded-2xl bg-gradient-to-br from-[#D98200] to-[#964B00] border border-[#F5B700]/65 text-start shadow-[0_10px_24px_rgba(245,183,0,0.2)] flex items-center gap-2.5 sm:gap-3 transition-all"
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-black/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <CalendarDays className="w-5 h-5 text-[#FFF8E1]" />
@@ -229,7 +232,7 @@ export function HomeScreen({
               soundEngine.playClick();
               onLeaderboardClick();
             }}
-            className="group min-h-[70px] sm:min-h-[82px] px-3.5 py-3 rounded-2xl bg-[#13221A]/95 border border-white/15 hover:border-[#009E49]/75 text-start shadow-xl flex items-center gap-3 transition-all backdrop-blur-sm"
+            className="group min-h-[64px] sm:min-h-[76px] px-3 py-2.5 rounded-2xl bg-[#13221A]/95 border border-white/15 hover:border-[#009E49]/75 text-start shadow-xl flex items-center gap-2.5 sm:gap-3 transition-all backdrop-blur-sm"
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#009E49]/20 border border-[#009E49]/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <Trophy className="w-5 h-5 text-[#22C55E]" />
@@ -255,7 +258,7 @@ export function HomeScreen({
               soundEngine.playClick();
               onWeeklyClick();
             }}
-            className="group col-span-2 min-h-[64px] sm:min-h-[74px] px-4 py-2.5 rounded-2xl bg-[#14231B]/95 border border-[#F5B700]/55 hover:border-[#F5B700] text-start shadow-xl flex items-center justify-between gap-3 transition-all backdrop-blur-sm"
+            className="group col-span-2 min-h-[60px] sm:min-h-[70px] px-3.5 py-2 rounded-2xl bg-[#14231B]/95 border border-[#F5B700]/55 hover:border-[#F5B700] text-start shadow-xl flex items-center justify-between gap-3 transition-all backdrop-blur-sm"
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F5B700]/15 border border-[#F5B700]/45 flex items-center justify-center shrink-0">
@@ -290,6 +293,26 @@ export function HomeScreen({
             </div>
           </motion.button>
         </section>
+
+        {/* Official SELAH Footer & À propos */}
+        <footer className="pt-0.5 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              soundEngine.playClick();
+              onOpenAbout();
+            }}
+            className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-[#B8CCC0] hover:text-white transition-colors"
+          >
+            <img
+              src={SELAH_BRAND.symbolSrc}
+              alt={SELAH_BRAND.name}
+              className="w-4 h-4 object-contain mix-blend-screen shrink-0 select-none"
+            />
+            <span>{SELAH_BRAND.footerLine}</span>
+            <span className="text-[#38BDF8] font-semibold">· À propos</span>
+          </button>
+        </footer>
       </div>
     </main>
   );

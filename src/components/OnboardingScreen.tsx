@@ -1,6 +1,7 @@
 import { ArrowRight, Check, ShieldCheck, WifiOff } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { AVATAR_OPTIONS, TROPHY_CREST_IMAGE } from '../data/avatars';
+import { SELAH_BRAND } from '../data/brand';
 import { getCountryByCode, getCountryName } from '../data/countries54';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { getUiText, LANGUAGE_OPTIONS } from '../i18n/translations';
@@ -23,6 +24,7 @@ interface OnboardingScreenProps {
     avatar: AvatarId;
   }) => void;
   onCancel?: () => void;
+  onOpenAbout?: () => void;
 }
 
 export function OnboardingScreen({
@@ -34,6 +36,7 @@ export function OnboardingScreen({
   onLanguagePreview,
   onSubmit,
   onCancel,
+  onOpenAbout,
 }: OnboardingScreenProps) {
   const [name, setName] = useState(initialName);
   const [language, setLanguage] = useState<Language>(initialLanguage);
@@ -240,6 +243,25 @@ export function OnboardingScreen({
             </button>
           </div>
         </form>
+
+        <footer className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              soundEngine.playClick();
+              onOpenAbout?.();
+            }}
+            className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium text-[var(--qa-muted)] hover:text-[var(--qa-text)] transition-colors"
+          >
+            <img
+              src={SELAH_BRAND.symbolSrc}
+              alt={SELAH_BRAND.name}
+              className="w-4 h-4 object-contain mix-blend-screen shrink-0 select-none"
+            />
+            <span>{SELAH_BRAND.footerLine}</span>
+            <span className="text-[#38BDF8] font-semibold">· À propos</span>
+          </button>
+        </footer>
       </div>
     </div>
   );

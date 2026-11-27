@@ -16,13 +16,19 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+        includeAssets: [
+          'icon.svg',
+          'apple-touch-icon.png',
+          'pwa-192x192.png',
+          'pwa-512x512.png',
+          'assets/selah_symbol_s.png',
+        ],
         manifest: {
           id: '/',
           name: "QUIZ AFRICA - Champion d'Afrique",
           short_name: 'Quiz Africa',
           description:
-            "Jeu de quiz multilingue sur les 54 pays d'Afrique avec mode hors ligne, Défi du Jour et classement.",
+            "Jeu de quiz multilingue sur les 54 pays d'Afrique avec mode hors ligne, Défi du Jour et classement. Une création SELAH — L'innovation prend forme.",
           theme_color: '#0A100D',
           background_color: '#0A100D',
           display: 'standalone',

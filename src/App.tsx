@@ -1,6 +1,7 @@
 import type { User } from 'firebase/auth';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useState } from 'react';
+import { AboutSelahModal } from './components/AboutSelahModal';
 import { DailyChallengeHub } from './components/DailyChallengeHub';
 import { DuelScreen } from './components/DuelScreen';
 import { HomeScreen } from './components/HomeScreen';
@@ -13,6 +14,7 @@ import { TopHeader } from './components/TopHeader';
 import { WeeklyCompetitionScreen } from './components/WeeklyCompetitionScreen';
 import { HOME_BACKDROP_IMAGE, TROPHY_CREST_IMAGE } from './data/avatars';
 import { AFRICAN_NEWS_QUESTIONS } from './data/africanNewsQuestions';
+import { SELAH_BRAND } from './data/brand';
 import { getUiText } from './i18n/translations';
 import {
   ALL_QUESTIONS,
@@ -148,10 +150,11 @@ export default function App() {
   const activeLanguage: Language = player ? player.language : previewLang;
   const activeUiText = getUiText(activeLanguage);
   const [showSplash, setShowSplash] = useState(() => !initialState.urlDuelCode);
+  const [showAboutSelah, setShowAboutSelah] = useState(false);
 
   useEffect(() => {
     if (!showSplash) return;
-    const timer = setTimeout(() => setShowSplash(false), 950);
+    const timer = setTimeout(() => setShowSplash(false), 1600);
     return () => clearTimeout(timer);
   }, [showSplash]);
 
@@ -535,6 +538,18 @@ export default function App() {
             <p className="font-display font-semibold text-sm sm:text-base text-[#D6E5DC] tracking-wide">
               {activeUiText.appSubtitle}
             </p>
+
+            {/* Official SELAH Studio Intro */}
+            <div className="mt-4 px-5 py-2.5 flex flex-col items-center gap-1">
+              <img
+                src={SELAH_BRAND.logoSrc}
+                alt={SELAH_BRAND.name}
+                className="h-12 sm:h-14 w-auto object-contain mix-blend-screen select-none"
+              />
+              <p className="font-display font-semibold text-xs sm:text-sm text-[#38BDF8] tracking-wide">
+                {SELAH_BRAND.signature}
+              </p>
+            </div>
           </motion.div>
 
           <div className="absolute bottom-0 inset-x-0 h-[4px] panafrica-stripe" />
@@ -543,15 +558,25 @@ export default function App() {
     </AnimatePresence>
   );
 
+  const aboutSelahModal = (
+    <AboutSelahModal
+      isOpen={showAboutSelah}
+      language={activeLanguage}
+      onClose={() => setShowAboutSelah(false)}
+    />
+  );
+
   if (!player || screen === 'onboarding') {
     return (
       <>
         {splashOverlay}
+        {aboutSelahModal}
         <OnboardingScreen
           mode="create"
           initialLanguage={previewLang}
           onLanguagePreview={(lang) => setPreviewLang(lang)}
           onSubmit={handleCreateProfile}
+          onOpenAbout={() => setShowAboutSelah(true)}
         />
       </>
     );
@@ -561,6 +586,7 @@ export default function App() {
     return (
       <>
         {splashOverlay}
+        {aboutSelahModal}
         <OnboardingScreen
           mode="edit"
           initialName={player.name}
@@ -570,6 +596,7 @@ export default function App() {
           onLanguagePreview={handleChangeLanguage}
           onSubmit={handleUpdateProfile}
           onCancel={() => setScreen('home')}
+          onOpenAbout={() => setShowAboutSelah(true)}
         />
       </>
     );
@@ -579,6 +606,8 @@ export default function App() {
   const isFixedViewportScreen =
     screen === 'home' ||
     screen === 'setupGame' ||
+    screen === 'playingNormal' ||
+    screen === 'playingDaily' ||
     screen === 'dailyHub' ||
     screen === 'leaderboard' ||
     screen === 'weekly';
@@ -592,6 +621,7 @@ export default function App() {
       }
     >
       {splashOverlay}
+      {aboutSelahModal}
       <TopHeader
         player={player}
         firebaseUser={firebaseUser}
@@ -626,6 +656,7 @@ export default function App() {
           onWeeklyClick={() => setScreen('weekly')}
           onDuelClick={() => setScreen('duel')}
           onChangeLanguage={handleChangeLanguage}
+          onOpenAbout={() => setShowAboutSelah(true)}
         />
       )}
 
@@ -679,6 +710,7 @@ export default function App() {
           result={lastResult}
           onReplayNormal={() => setScreen('setupGame')}
           onGoHome={() => setScreen('home')}
+          onOpenAbout={() => setShowAboutSelah(true)}
         />
       )}
 

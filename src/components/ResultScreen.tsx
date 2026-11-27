@@ -12,6 +12,7 @@ import {
   Trophy,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { SELAH_BRAND } from '../data/brand';
 import { getCountryByCode, getCountryName } from '../data/countries54';
 import { getUiText } from '../i18n/translations';
 import { GameResultPayload, PlayerProfile } from '../types/quiz';
@@ -25,6 +26,7 @@ interface ResultScreenProps {
   result: GameResultPayload;
   onReplayNormal: () => void;
   onGoHome: () => void;
+  onOpenAbout?: () => void;
 }
 
 export function ResultScreen({
@@ -32,6 +34,7 @@ export function ResultScreen({
   result,
   onReplayNormal,
   onGoHome,
+  onOpenAbout,
 }: ResultScreenProps) {
   const [copiedMsg, setCopiedMsg] = useState(false);
   const t = getUiText(player.language);
@@ -330,6 +333,25 @@ export function ResultScreen({
           </button>
         </div>
       </section>
+
+      <footer className="pt-1 text-center">
+        <button
+          type="button"
+          onClick={() => {
+            soundEngine.playClick();
+            onOpenAbout?.();
+          }}
+          className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium text-[var(--qa-muted)] hover:text-[var(--qa-text)] transition-colors"
+        >
+          <img
+            src={SELAH_BRAND.symbolSrc}
+            alt={SELAH_BRAND.name}
+            className="w-4 h-4 object-contain mix-blend-screen shrink-0 select-none"
+          />
+          <span>{SELAH_BRAND.footerLine}</span>
+          <span className="text-[#38BDF8] font-semibold">· À propos</span>
+        </button>
+      </footer>
     </main>
   );
 }

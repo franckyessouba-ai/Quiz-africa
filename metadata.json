@@ -1,6 +1,6 @@
 {
   "name": "QUIZ AFRICA - Champion d'Afrique",
-  "description": "Jeu de quiz multilingue sur les 54 pays d'Afrique : Football, Culture, Histoire, Géographie, Défi du Jour et Compétition en ligne. Penses-tu vraiment connaître l'Afrique, alors viens testé tes connaissances et en apprendre plus, en grimpant dans le classement mondial des meilleurs passionnés du continent.",
+  "description": "Jeu de quiz multilingue sur les 54 pays d'Afrique : Football, Culture, Histoire, Géographie, Défi du Jour et Compétition en ligne. Une création SELAH — L'innovation prend forme.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

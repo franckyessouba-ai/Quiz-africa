@@ -1063,6 +1063,538 @@
         },
         "newsDate": "2026-11-23"
       }
+    ],
+    "2026-11-27": [
+      {
+        "id": "news_fb_07",
+        "countryCode": "EG",
+        "category": "football",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel club égyptien a remporté la Ligue des Champions de la CAF en 2023 puis en 2024 ?",
+          "en": "Which Egyptian club won back-to-back CAF Champions League titles in 2023 and 2024?",
+          "es": "¿Qué club egipcio ganó de forma consecutiva la Liga de Campeones de la CAF en 2023 y 2024?",
+          "pt": "Qual clube egípcio conquistou a Liga dos Campeões da CAF em 2023 e 2024?",
+          "ar": "أي نادٍ مصري تُوّج بدوري أبطال أفريقيا عامي 2023 و2024 على التوالي؟"
+        },
+        "options": [
+          {
+            "fr": "Zamalek SC",
+            "en": "Zamalek SC",
+            "es": "Zamalek SC",
+            "pt": "Zamalek SC",
+            "ar": "الزمالك"
+          },
+          {
+            "fr": "Al Ahly SC",
+            "en": "Al Ahly SC",
+            "es": "Al Ahly SC",
+            "pt": "Al Ahly SC",
+            "ar": "الأهلي المصري"
+          },
+          {
+            "fr": "Pyramids FC",
+            "en": "Pyramids FC",
+            "es": "Pyramids FC",
+            "pt": "Pyramids FC",
+            "ar": "بيراميدز"
+          },
+          {
+            "fr": "Ismaily SC",
+            "en": "Ismaily SC",
+            "es": "Ismaily SC",
+            "pt": "Ismaily SC",
+            "ar": "الإسماعيلي"
+          }
+        ],
+        "correctIndex": 1,
+        "explanation": {
+          "fr": "Al Ahly du Caire a porté son record absolu à 12 Ligues des Champions de la CAF en battant l’Espérance de Tunis en 2024.",
+          "en": "Cairo’s Al Ahly extended their record to 12 CAF Champions League trophies by defeating Espérance de Tunis in 2024.",
+          "es": "Al Ahly amplió su récord a 12 Ligas de Campeones de la CAF al vencer al Espérance en 2024.",
+          "pt": "O Al Ahly ampliou seu recorde para 12 títulos da Liga dos Campeões da CAF ao vencer o Espérance em 2024.",
+          "ar": "رفع الأهلي رصيده القياسي إلى 12 لقباً في دوري أبطال أفريقيا بفوزه على الترجي التونسي في 2024."
+        },
+        "newsDate": "2026-11-27"
+      },
+      {
+        "id": "news_fb_08",
+        "countryCode": "ZM",
+        "category": "football",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quelle attaquante zambienne des Copper Queens a été élue Joueuse Africaine de l’Année CAF 2024 ?",
+          "en": "Which Zambian Copper Queens striker won the 2024 CAF Women’s Player of the Year award?",
+          "es": "¿Qué delantera zambiana de las Copper Queens ganó el premio a Jugadora Africana del Año CAF 2024?",
+          "pt": "Qual atacante zambiana foi eleita Jogadora Africana do Ano da CAF em 2024?",
+          "ar": "أي مهاجمة زامبية فازت بجائزة أفضل لاعبة أفريقية لعام 2024 من الكاف؟"
+        },
+        "options": [
+          {
+            "fr": "Barbra Banda",
+            "en": "Barbra Banda",
+            "es": "Barbra Banda",
+            "pt": "Barbra Banda",
+            "ar": "باربرا باندا"
+          },
+          {
+            "fr": "Asisat Oshoala",
+            "en": "Asisat Oshoala",
+            "es": "Asisat Oshoala",
+            "pt": "Asisat Oshoala",
+            "ar": "أسيسات أوشوالا"
+          },
+          {
+            "fr": "Tabitha Chawinga",
+            "en": "Tabitha Chawinga",
+            "es": "Tabitha Chawinga",
+            "pt": "Tabitha Chawinga",
+            "ar": "تابيثا تشاوينغا"
+          },
+          {
+            "fr": "Thembi Kgatlana",
+            "en": "Thembi Kgatlana",
+            "es": "Thembi Kgatlana",
+            "pt": "Thembi Kgatlana",
+            "ar": "ثيمبي كجاتلانا"
+          }
+        ],
+        "correctIndex": 0,
+        "explanation": {
+          "fr": "Barbra Banda est devenue la première Zambienne à décrocher le prestigieux trophée de Joueuse Africaine de l’Année.",
+          "en": "Barbra Banda became the first Zambian footballer to win the prestigious CAF Women’s Player of the Year honor.",
+          "es": "Barbra Banda se convirtió en la primera zambiana en conquistar el galardón femenino de la CAF.",
+          "pt": "Barbra Banda tornou-se a primeira zambiana a vencer o troféu feminino da CAF.",
+          "ar": "أصبحت باربرا باندا أول لاعبة من زامبيا تفوز بجائزة الكاف لأفضل لاعبة أفريقية."
+        },
+        "newsDate": "2026-11-27"
+      },
+      {
+        "id": "news_fb_09",
+        "countryCode": "ZA",
+        "category": "football",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel club sud-africain a remporté la toute première édition de l’African Football League (AFL) en 2023 ?",
+          "en": "Which South African club won the inaugural African Football League (AFL) in 2023?",
+          "es": "¿Qué club sudafricano ganó la primera edición de la African Football League (AFL) en 2023?",
+          "pt": "Qual clube sul-africano venceu a edição inaugural da African Football League (AFL) em 2023?",
+          "ar": "أي نادٍ جنوب أفريقي تُوّج بالنسخة الأولى من الدوري الأفريقي لكرة القدم عام 2023؟"
+        },
+        "options": [
+          {
+            "fr": "Orlando Pirates",
+            "en": "Orlando Pirates",
+            "es": "Orlando Pirates",
+            "pt": "Orlando Pirates",
+            "ar": "أورلاندو بايرتس"
+          },
+          {
+            "fr": "Kaizer Chiefs",
+            "en": "Kaizer Chiefs",
+            "es": "Kaizer Chiefs",
+            "pt": "Kaizer Chiefs",
+            "ar": "كايزر تشيفز"
+          },
+          {
+            "fr": "Cape Town City",
+            "en": "Cape Town City",
+            "es": "Cape Town City",
+            "pt": "Cape Town City",
+            "ar": "كيب تاون سيتي"
+          },
+          {
+            "fr": "Mamelodi Sundowns",
+            "en": "Mamelodi Sundowns",
+            "es": "Mamelodi Sundowns",
+            "pt": "Mamelodi Sundowns",
+            "ar": "ماميلودي صن داونز"
+          }
+        ],
+        "correctIndex": 3,
+        "explanation": {
+          "fr": "Les Mamelodi Sundowns ont battu le Wydad AC de Casablanca en finale devant leur public à Pretoria.",
+          "en": "Mamelodi Sundowns defeated Morocco’s Wydad AC in Pretoria to lift the inaugural AFL trophy.",
+          "es": "Mamelodi Sundowns venció al Wydad AC en Pretoria para conquistar la primera AFL.",
+          "pt": "O Mamelodi Sundowns derrotou o Wydad AC em Pretória para conquistar a primeira AFL.",
+          "ar": "تُوج ماميلودي صن داونز باللقب في بريتوريا على حساب الوداد المغربي."
+        },
+        "newsDate": "2026-11-27"
+      },
+      {
+        "id": "news_fb_10",
+        "countryCode": "MA",
+        "category": "football",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel club marocain féminin, vainqueur de la Ligue des Champions féminine de la CAF, domine régulièrement la scène continentale ?",
+          "en": "Which Moroccan women’s football club regularly wins and dominates the CAF Women’s Champions League?",
+          "es": "¿Qué club marroquí femenino domina regularmente la Liga de Campeones Femenina de la CAF?",
+          "pt": "Qual clube feminino marroquino domina frequentemente a Liga dos Campeões Feminina da CAF?",
+          "ar": "أي نادٍ مغربي للسيدات يتألق باستمرار في دوري أبطال أفريقيا للسيدات؟"
+        },
+        "options": [
+          {
+            "fr": "Raja Casablanca",
+            "en": "Raja Casablanca",
+            "es": "Raja Casablanca",
+            "pt": "Raja Casablanca",
+            "ar": "الرجاء البيضاوي"
+          },
+          {
+            "fr": "Hassania Agadir",
+            "en": "Hassania Agadir",
+            "es": "Hassania Agadir",
+            "pt": "Hassania Agadir",
+            "ar": "حسنية أكادير"
+          },
+          {
+            "fr": "AS FAR Rabat",
+            "en": "AS FAR Rabat",
+            "es": "AS FAR Rabat",
+            "pt": "AS FAR Rabat",
+            "ar": "الجيش الملكي المغربي"
+          },
+          {
+            "fr": "FUS Rabat",
+            "en": "FUS Rabat",
+            "es": "FUS Rabat",
+            "pt": "FUS Rabat",
+            "ar": "الفتح الرباطي"
+          }
+        ],
+        "correctIndex": 2,
+        "explanation": {
+          "fr": "L’AS FAR Rabat est l’un des piliers du football féminin africain, aux côtés des Mamelodi Sundowns et du TP Mazembe.",
+          "en": "AS FAR Rabat is a powerhouse of African women’s club football alongside Mamelodi Sundowns and TP Mazembe.",
+          "es": "AS FAR Rabat es una potencia del fútbol femenino africano junto a Sundowns y TP Mazembe.",
+          "pt": "O AS FAR Rabat é potência do futebol feminino africano ao lado de Sundowns e TP Mazembe.",
+          "ar": "يُعد فريق الجيش الملكي المغربي من أبرز أقطاب كرة القدم النسائية في القارة الأفريقية."
+        },
+        "newsDate": "2026-11-27"
+      },
+      {
+        "id": "news_fb_11",
+        "countryCode": "CD",
+        "category": "football",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel club congolais de Lubumbashi a remporté la Ligue des Champions féminine de la CAF 2024 organisée au Maroc ?",
+          "en": "Which DR Congo club from Lubumbashi won the 2024 CAF Women’s Champions League in Morocco?",
+          "es": "¿Qué club congoleño de Lubumbashi ganó la Liga de Campeones Femenina de la CAF 2024 en Marruecos?",
+          "pt": "Qual clube congolês de Lubumbashi venceu a Liga dos Campeões Feminina da CAF 2024 no Marrocos?",
+          "ar": "أي نادٍ كونغولي من لوبومباشي فاز بدوري أبطال أفريقيا للسيدات 2024 في المغرب؟"
+        },
+        "options": [
+          {
+            "fr": "TP Mazembe (Féminines)",
+            "en": "TP Mazembe Women",
+            "es": "TP Mazembe Femenino",
+            "pt": "TP Mazembe Feminino",
+            "ar": "تي بي مازيمبي للسيدات"
+          },
+          {
+            "fr": "Saint-Éloi Lupopo",
+            "en": "Saint-Éloi Lupopo",
+            "es": "Saint-Éloi Lupopo",
+            "pt": "Saint-Éloi Lupopo",
+            "ar": "سانت إيلوا لوبوبو"
+          },
+          {
+            "fr": "AS Vita Club",
+            "en": "AS Vita Club",
+            "es": "AS Vita Club",
+            "pt": "AS Vita Club",
+            "ar": "فيتا كلوب"
+          },
+          {
+            "fr": "DC Motema Pembe",
+            "en": "DC Motema Pembe",
+            "es": "DC Motema Pembe",
+            "pt": "DC Motema Pembe",
+            "ar": "موتيما بيمبي"
+          }
+        ],
+        "correctIndex": 0,
+        "explanation": {
+          "fr": "Les Corbeaux du TP Mazembe de Lubumbashi ont battu l’AS FAR 1-0 en finale pour inscrire le nom de la RDC au palmarès.",
+          "en": "TP Mazembe Women defeated AS FAR 1-0 in the final to claim DR Congo’s first title in the competition.",
+          "es": "TP Mazembe derrotó 1-0 al AS FAR en la final para dar el título a la RD del Congo.",
+          "pt": "O TP Mazembe venceu o AS FAR por 1-0 na final, levando o troféu à RD do Congo.",
+          "ar": "حقق فريق مازيمبي للسيدات اللقب بفوزه 1-0 على الجيش الملكي في النهائي."
+        },
+        "newsDate": "2026-11-27"
+      },
+      {
+        "id": "news_fb_12",
+        "countryCode": "CV",
+        "category": "football",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel pays insulaire d’Afrique de l’Ouest a atteint les quarts de finale de la CAN 2023 avec l’un des plus beaux jeux du tournoi ?",
+          "en": "Which West African island nation reached the AFCON 2023 quarter-finals playing thrilling football?",
+          "es": "¿Qué país insular de África Occidental alcanzó los cuartos de final de la CAN 2023 con un juego brillante?",
+          "pt": "Qual país insular da África Ocidental chegou às quartas de final da CAN 2023 com futebol vibrante?",
+          "ar": "أي دولة جزرية في غرب أفريقيا بلغت ربع نهائي أمم أفريقيا 2023 بأداء لافت؟"
+        },
+        "options": [
+          {
+            "fr": "Maurice",
+            "en": "Mauritius",
+            "es": "Mauricio",
+            "pt": "Maurício",
+            "ar": "موريشيوس"
+          },
+          {
+            "fr": "Comores",
+            "en": "Comoros",
+            "es": "Comoras",
+            "pt": "Comores",
+            "ar": "جزر القمر"
+          },
+          {
+            "fr": "Cap-Vert",
+            "en": "Cabo Verde",
+            "es": "Cabo Verde",
+            "pt": "Cabo Verde",
+            "ar": "الرأس الأخضر"
+          },
+          {
+            "fr": "Seychelles",
+            "en": "Seychelles",
+            "es": "Seychelles",
+            "pt": "Seicheles",
+            "ar": "سيشل"
+          }
+        ],
+        "correctIndex": 2,
+        "explanation": {
+          "fr": "Les Requins Bleus du Cap-Vert ont terminé en tête de leur groupe devant l’Égypte et le Ghana.",
+          "en": "Cabo Verde’s Blue Sharks topped their group ahead of Egypt and Ghana before reaching the quarter-finals.",
+          "es": "Los Tiburones Azules lideraron su grupo ante Egipto y Ghana antes de llegar a cuartos.",
+          "pt": "Os Tubarões Azuis lideraram o grupo à frente de Egito e Gana antes das quartas de final.",
+          "ar": "تصدّر منتخب أسماك القرش الزرقاء (الرأس الأخضر) مجموعته أمام مصر وغانا وبلغ ربع النهائي."
+        },
+        "newsDate": "2026-11-27"
+      },
+      {
+        "id": "news_fb_13",
+        "countryCode": "GQ",
+        "category": "football",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel capitaine de la Guinée Équatoriale a terminé meilleur buteur de la CAN 2023 avec 5 buts ?",
+          "en": "Which Equatorial Guinea captain finished as top scorer of AFCON 2023 with 5 goals?",
+          "es": "¿Qué capitán de Guinea Ecuatorial fue el máximo goleador de la CAN 2023 con 5 tantos?",
+          "pt": "Qual capitão da Guiné Equatorial foi o artilheiro da CAN 2023 com 5 gols?",
+          "ar": "أي قائد لمنتخب غينيا الاستوائية تُوّج هدافاً لكأس أمم أفريقيا 2023 برصيد 5 أهداف؟"
+        },
+        "options": [
+          {
+            "fr": "Federico Bikoro",
+            "en": "Federico Bikoro",
+            "es": "Federico Bikoro",
+            "pt": "Federico Bikoro",
+            "ar": "فيديريكو بيكورو"
+          },
+          {
+            "fr": "Iban Salvador",
+            "en": "Iban Salvador",
+            "es": "Iban Salvador",
+            "pt": "Iban Salvador",
+            "ar": "إيبان سلفادور"
+          },
+          {
+            "fr": "Pedro Obiang",
+            "en": "Pedro Obiang",
+            "es": "Pedro Obiang",
+            "pt": "Pedro Obiang",
+            "ar": "بيدرو أوبيانغ"
+          },
+          {
+            "fr": "Emilio Nsue",
+            "en": "Emilio Nsue",
+            "es": "Emilio Nsue",
+            "pt": "Emilio Nsue",
+            "ar": "إيميليو نسوي"
+          }
+        ],
+        "correctIndex": 3,
+        "explanation": {
+          "fr": "Emilio Nsue a inscrit un triplé contre la Guinée-Bissau et un doublé face à la Côte d’Ivoire pour remporter le Soulier d’Or.",
+          "en": "Emilio Nsue scored a hat-trick against Guinea-Bissau and a brace against Côte d’Ivoire to win the Golden Boot.",
+          "es": "Emilio Nsue firmó un triplete ante Guinea-Bisáu y un doblete frente a Costa de Marfil para ganar la Bota de Oro.",
+          "pt": "Emilio Nsue marcou três gols contra Guiné-Bissau e dois contra a Costa do Marfim, levando a Chuteira de Ouro.",
+          "ar": "سجل إيميليو نسوي هاتريك أمام غينيا بيساو وثنائية أمام كوت ديفوار ليتوّج بالحذاء الذهبي."
+        },
+        "newsDate": "2026-11-27"
+      },
+      {
+        "id": "news_fb_14",
+        "countryCode": "EG",
+        "category": "football",
+        "difficulty": 3,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quel club du Caire a remporté la Coupe de la Confédération CAF 2024 face au RS Berkane ?",
+          "en": "Which Cairo club won the 2024 CAF Confederation Cup final against Morocco’s RS Berkane?",
+          "es": "¿Qué club de El Cairo ganó la Copa Confederación de la CAF 2024 ante el RS Berkane?",
+          "pt": "Qual clube do Cairo venceu a Copa das Confederações da CAF de 2024 contra o RS Berkane?",
+          "ar": "أي نادٍ قاهري فاز بكأس الكونفدرالية الأفريقية 2024 أمام نهضة بركان؟"
+        },
+        "options": [
+          {
+            "fr": "Pyramids FC",
+            "en": "Pyramids FC",
+            "es": "Pyramids FC",
+            "pt": "Pyramids FC",
+            "ar": "بيراميدز"
+          },
+          {
+            "fr": "Zamalek SC",
+            "en": "Zamalek SC",
+            "es": "Zamalek SC",
+            "pt": "Zamalek SC",
+            "ar": "الزمالك"
+          },
+          {
+            "fr": "Modern Future",
+            "en": "Modern Future",
+            "es": "Modern Future",
+            "pt": "Modern Future",
+            "ar": "مودرن فيوتشر"
+          },
+          {
+            "fr": "Al Masry",
+            "en": "Al Masry",
+            "es": "Al Masry",
+            "pt": "Al Masry",
+            "ar": "المصري"
+          }
+        ],
+        "correctIndex": 1,
+        "explanation": {
+          "fr": "Le Zamalek SC a remporté sa deuxième Coupe de la Confédération grâce au but à l’extérieur et à sa victoire 1-0 au Caire.",
+          "en": "Zamalek SC lifted their second CAF Confederation Cup trophy after a 1-0 second-leg victory in Cairo.",
+          "es": "Zamalek SC ganó su segunda Copa Confederación tras vencer 1-0 en la vuelta en El Cairo.",
+          "pt": "O Zamalek SC conquistou sua segunda Copa das Confederações após vitória por 1-0 no Cairo.",
+          "ar": "حقق الزمالك لقبه الثاني في الكونفدرالية الأفريقية بعد فوزه إياباً 1-0 في القاهرة."
+        },
+        "newsDate": "2026-11-27"
+      },
+      {
+        "id": "news_fb_15",
+        "countryCode": "SN",
+        "category": "football",
+        "difficulty": 2,
+        "isNews": true,
+        "prompt": {
+          "fr": "Quelle sélection a remporté le Championnat d’Afrique des Nations (CHAN) disputé en Algérie avant de se distinguer chez les jeunes U17/U20 ?",
+          "en": "Which national team won the CHAN tournament in Algeria alongside sweeping CAF U17 and U20 titles?",
+          "es": "¿Qué selección ganó el CHAN en Argelia junto a los títulos africanos Sub-17 y Sub-20?",
+          "pt": "Qual seleção venceu o CHAN na Argélia além dos títulos africanos Sub-17 e Sub-20?",
+          "ar": "أي منتخب أفريقي فاز ببطولة أمم أفريقيا للمحليين (الشان) في الجزائر وتألق في بطولات الشباب القارية؟"
+        },
+        "options": [
+          {
+            "fr": "Tunisie",
+            "en": "Tunisia",
+            "es": "Túnez",
+            "pt": "Tunísia",
+            "ar": "تونس"
+          },
+          {
+            "fr": "Mali",
+            "en": "Mali",
+            "es": "Malí",
+            "pt": "Mali",
+            "ar": "مالي"
+          },
+          {
+            "fr": "Cameroun",
+            "en": "Cameroon",
+            "es": "Camerún",
+            "pt": "Camarões",
+            "ar": "الكاميرون"
+          },
+          {
+            "fr": "Sénégal",
+            "en": "Senegal",
+            "es": "Senegal",
+            "pt": "Senegal",
+            "ar": "السنغال"
+          }
+        ],
+        "correctIndex": 3,
+        "explanation": {
+          "fr": "Le football sénégalais a réalisé une série historique en remportant la CAN, le CHAN, la CAN U20 et la CAN U17.",
+          "en": "Senegal achieved an unprecedented sweep across AFCON, CHAN, U20 AFCON, and U17 AFCON.",
+          "es": "Senegal logró una hazaña histórica al ganar la CAN, el CHAN, la CAN Sub-20 y la CAN Sub-17.",
+          "pt": "O Senegal alcançou feito inédito ao conquistar a CAN, o CHAN, a CAN Sub-20 e a CAN Sub-17.",
+          "ar": "حقق السنغال رباعية قارية غير مسبوقة بفوزه بكأس الأمم والشان وبطولتَي تحت 20 وتحت 17 عاماً."
+        },
+        "newsDate": "2026-11-27"
+      },
+      {
+        "id": "news_pol_01",
+        "countryCode": "AFRICA",
+        "category": "history",
+        "difficulty": 1,
+        "isNews": true,
+        "prompt": {
+          "fr": "À quelle grande organisation économique mondiale l’Union Africaine a-t-elle obtenu un siège de membre permanent en 2023 ?",
+          "en": "Which major global economic forum admitted the African Union as a permanent member in 2023?",
+          "es": "¿En qué gran foro económico mundial ingresó la Unión Africana como miembro permanente en 2023?",
+          "pt": "Em qual grande fórum econômico mundial a União Africana tornou-se membro permanente em 2023?",
+          "ar": "ما المنتدى الاقتصادي العالمي الذي انضم إليه الاتحاد الأفريقي كعضو دائم عام 2023؟"
+        },
+        "options": [
+          {
+            "fr": "L’ASEAN",
+            "en": "ASEAN",
+            "es": "La ASEAN",
+            "pt": "A ASEAN",
+            "ar": "رابطة آسيان"
+          },
+          {
+            "fr": "Le G20",
+            "en": "The G20",
+            "es": "El G20",
+            "pt": "O G20",
+            "ar": "مجموعة العشرين (G20)"
+          },
+          {
+            "fr": "Le Mercosur",
+            "en": "Mercosur",
+            "es": "Mercosur",
+            "pt": "Mercosul",
+            "ar": "ميركوسور"
+          },
+          {
+            "fr": "Le Conseil nordique",
+            "en": "The Nordic Council",
+            "es": "El Consejo Nórdico",
+            "pt": "Conselho Nórdico",
+            "ar": "المجلس الشمالي"
+          }
+        ],
+        "correctIndex": 1,
+        "explanation": {
+          "fr": "L’Union Africaine (55 États membres) siège désormais au G20 au même titre que l’Union européenne, renforçant la voix de l’Afrique.",
+          "en": "The 55-member African Union joined the G20 as a permanent member, amplifying Africa’s voice in global governance.",
+          "es": "La Unión Africana pasó a ser miembro permanente del G20, reforzando el peso diplomático del continente.",
+          "pt": "A União Africana tornou-se membro permanente do G20, fortalecendo a representação africana.",
+          "ar": "أصبح الاتحاد الأفريقي عضواً دائماً في مجموعة العشرين لتعزيز صوت القارة الأفريقية عالمياً."
+        },
+        "newsDate": "2026-11-27"
+      }
     ]
   }
 }

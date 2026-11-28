@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   Clock,
   Heart,
+  Layers,
   Lightbulb,
   Lock,
   LogOut,
@@ -20,16 +21,27 @@ import {
   PlayScope,
   QuizQuestion,
 } from '../types/quiz';
+import {
+  generateAskFriendHint,
+  generateAudiencePercentages,
+  generateFiftyFiftyEliminated,
+  generateFirstLetterInfo,
+  HINT_COSTS,
+  HintType,
+  INITIAL_USED_JOKERS,
+} from '../utils/hints';
 import { getBasePointsForDifficulty } from '../utils/levelSystem';
 import { soundEngine } from '../utils/sound';
+import { HintsPanel } from './HintsPanel';
 
 interface QuizArenaProps {
-  mode: 'normal' | 'daily';
+  mode: 'normal' | 'daily' | 'levels';
   language: Language;
   playScope: PlayScope;
   category: CategorySelection;
   questions: QuizQuestion[];
   bestGameScore: number;
+  gameLevel?: number;
   onFinish: (result: GameResultPayload) => void;
   onQuit: () => void;
 }
@@ -44,6 +56,7 @@ export function QuizArena({
   category,
   questions,
   bestGameScore,
+  gameLevel = 1,
   onFinish,
   onQuit,
 }: QuizArenaProps) {
@@ -56,6 +69,18 @@ export function QuizArena({
   const [timedOut, setTimedOut] = useState(false);
   const [confirmQuit, setConfirmQuit] = useState(false);
 
+  const [usedJokers, setUsedJokers] = useState<Record<HintType, boolean>>({
+    ...INITIAL_USED_JOKERS,
+  });
+  const [eliminatedIndices, setEliminatedIndices] = useState<number[]>([]);
+  const [firstLetterText, setFirstLetterText] = useState<string | null>(null);
+  const [audiencePercentages, setAudiencePercentages] = useState<number[] | null>(null);
+  const [fiftyFiftyActive, setFiftyFiftyActive] = useState(false);
+  const [friendText, setFriendText] = useState<string | null>(null);
+  const [lastCostFlash, setLastCostFlash] = useState<number | null>(null);
+
+  const scoreRef = useRef(0);
+  const pendingPenaltyRef = useRef(0);
   const answeredRef = useRef(false);
   const answerLogRef = useRef<AnswerLogItem[]>([]);
   const t = getUiText(language);
@@ -75,16 +100,23 @@ export function QuizArena({
     answeredRef.current = true;
     setTimedOut(true);
     soundEngine.playWrong();
-    if (mode === 'normal') {
+    if (mode === 'normal' || mode === 'levels') {
       setLives((prev) => Math.max(0, prev - 1));
     }
   }, [mode]);
 
   useEffect(() => {
     answeredRef.current = false;
+    pendingPenaltyRef.current = 0;
     setTimeLeft(QUESTION_DURATION);
     setSelectedOption(null);
     setTimedOut(false);
+    setEliminatedIndices([]);
+    setFirstLetterText(null);
+    setAudiencePercentages(null);
+    setFiftyFiftyActive(false);
+    setFriendText(null);
+    setLastCostFlash(null);
   }, [currentIndex]);
 
   useEffect(() => {
@@ -107,8 +139,54 @@ export function QuizArena({
 
   if (!currentQuestion) return null;
 
+  const handleUseHint = (hintType: HintType) => {
+    if (answeredRef.current || isRevealed || usedJokers[hintType]) return;
+
+    soundEngine.playClick();
+    setUsedJokers((prev) => ({ ...prev, [hintType]: true }));
+
+    const cost = HINT_COSTS[hintType];
+    const currentScore = scoreRef.current;
+    const paidNow = Math.min(currentScore, cost);
+    const deferred = cost - paidNow;
+    if (paidNow > 0) {
+      scoreRef.current = currentScore - paidNow;
+      setScore(scoreRef.current);
+    }
+    if (deferred > 0) {
+      pendingPenaltyRef.current += deferred;
+    }
+    setLastCostFlash(cost);
+
+    if (hintType === 'firstLetter') {
+      const { firstChar, length } = generateFirstLetterInfo(
+        currentQuestion.options[currentQuestion.correctIndex]?.[language] || '',
+        language
+      );
+      setFirstLetterText(t.hintFirstLetterMsg(firstChar, length));
+    } else if (hintType === 'fiftyFifty') {
+      const eliminated = generateFiftyFiftyEliminated(
+        currentQuestion.correctIndex,
+        currentQuestion.id
+      );
+      setEliminatedIndices(eliminated);
+      setFiftyFiftyActive(true);
+    } else if (hintType === 'audience') {
+      const pcts = generateAudiencePercentages(
+        currentQuestion.correctIndex,
+        currentQuestion.difficulty || 1,
+        eliminatedIndices,
+        currentQuestion.id
+      );
+      setAudiencePercentages(pcts);
+    } else if (hintType === 'askFriend') {
+      const { friendName, letter, clue } = generateAskFriendHint(currentQuestion, language);
+      setFriendText(t.hintAskFriendMsg(friendName, letter, clue));
+    }
+  };
+
   const handleSelectOption = (optionIndex: number) => {
-    if (answeredRef.current || isRevealed) return;
+    if (answeredRef.current || isRevealed || eliminatedIndices.includes(optionIndex)) return;
     answeredRef.current = true;
     setSelectedOption(optionIndex);
     answerLogRef.current.push({
@@ -122,24 +200,29 @@ export function QuizArena({
       soundEngine.playCorrect();
       const basePoints = getBasePointsForDifficulty(currentQuestion.difficulty || 1);
       const speedBonus = Math.max(0, Math.round(timeLeft * 2));
-      setScore((prev) => prev + basePoints + speedBonus);
+      const netEarned = Math.max(0, basePoints + speedBonus - pendingPenaltyRef.current);
+      pendingPenaltyRef.current = 0;
+      scoreRef.current = scoreRef.current + netEarned;
+      setScore(scoreRef.current);
       setCorrectCount((prev) => prev + 1);
     } else {
+      pendingPenaltyRef.current = 0;
       soundEngine.playWrong();
-      if (mode === 'normal') {
+      if (mode === 'normal' || mode === 'levels') {
         setLives((prev) => Math.max(0, prev - 1));
       }
     }
   };
 
-  const outOfLives = mode === 'normal' && lives <= 0;
+  const outOfLives = (mode === 'normal' || mode === 'levels') && lives <= 0;
   const isLastQuestion = currentIndex + 1 >= questions.length || outOfLives;
 
   const handleNext = () => {
     soundEngine.playClick();
     if (isLastQuestion) {
       const won = mode === 'daily' ? true : lives > 0;
-      const isNewRecord = mode === 'normal' && score > bestGameScore && score > 0;
+      const isNewRecord =
+        (mode === 'normal' || mode === 'levels') && score > bestGameScore && score > 0;
       onFinish({
         mode,
         playScope,
@@ -151,6 +234,8 @@ export function QuizArena({
         won,
         livesRemaining: lives,
         isNewRecord,
+        playedGameLevel: mode === 'levels' ? gameLevel : undefined,
+        nextGameLevel: mode === 'levels' ? (won ? gameLevel + 1 : gameLevel) : undefined,
         answerLog: answerLogRef.current,
       });
       return;
@@ -195,14 +280,21 @@ export function QuizArena({
       </div>
 
       <div className="h-full max-w-3xl mx-auto px-3 sm:px-6 pt-2 sm:pt-3 pb-2.5 sm:pb-4 flex flex-col gap-2 sm:gap-2.5">
-        {/* Locked Scope & Quit Bar */}
+        {/* Locked Scope / Level Badge & Quit Bar */}
         <div className="flex items-center justify-between gap-2 shrink-0">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[var(--qa-card)]/95 border border-[#F5B700]/45 text-[11px] sm:text-xs font-bold text-[var(--qa-text)] min-w-0 truncate">
-            <Lock className="w-3.5 h-3.5 text-[var(--qa-gold-text)] shrink-0" />
-            <span className="truncate">
-              {t.lockedOn}: {lockedLabel}
-            </span>
-          </div>
+          {mode === 'levels' ? (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[var(--qa-card)]/95 border border-[#22C55E]/55 text-[11px] sm:text-xs font-extrabold text-[var(--qa-text)] min-w-0 truncate">
+              <Layers className="w-3.5 h-3.5 text-[#F5B700] shrink-0" />
+              <span className="truncate">{t.levelStageBadge(gameLevel)}</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[var(--qa-card)]/95 border border-[#F5B700]/45 text-[11px] sm:text-xs font-bold text-[var(--qa-text)] min-w-0 truncate">
+              <Lock className="w-3.5 h-3.5 text-[var(--qa-gold-text)] shrink-0" />
+              <span className="truncate">
+                {t.lockedOn}: {lockedLabel}
+              </span>
+            </div>
+          )}
 
           {!confirmQuit ? (
             <button
@@ -246,7 +338,7 @@ export function QuizArena({
               {t.questionProgress(currentIndex + 1, questions.length)}
             </div>
 
-            {mode === 'normal' ? (
+            {mode === 'normal' || mode === 'levels' ? (
               <div className="flex items-center gap-1" aria-label={t.livesLabel}>
                 {[0, 1, 2].map((idx) => {
                   const active = idx < lives;
@@ -329,11 +421,25 @@ export function QuizArena({
               {currentQuestion.prompt[language]}
             </h2>
 
+            {/* Millionaire-style Lifelines / Hints */}
+            <HintsPanel
+              language={language}
+              usedJokers={usedJokers}
+              disabled={isRevealed}
+              firstLetterText={firstLetterText}
+              audiencePercentages={audiencePercentages}
+              fiftyFiftyActive={fiftyFiftyActive}
+              friendText={friendText}
+              lastCostFlash={lastCostFlash}
+              onUseHint={handleUseHint}
+            />
+
             {/* 4 Choices */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {currentQuestion.options.map((opt, idx) => {
                 const isCorrectOpt = idx === currentQuestion.correctIndex;
                 const isChosen = idx === selectedOption;
+                const isEliminated = !isRevealed && eliminatedIndices.includes(idx);
 
                 let btnStyle =
                   'bg-[var(--qa-inset)] border-[var(--qa-border)] text-[var(--qa-text)] hover:border-[#F5B700]';
@@ -352,14 +458,19 @@ export function QuizArena({
                     btnStyle = 'bg-[var(--qa-inset)]/60 border-[var(--qa-border)] text-[var(--qa-muted)] opacity-75';
                     badgeStyle = 'bg-[var(--qa-card)] text-[var(--qa-muted)]';
                   }
+                } else if (isEliminated) {
+                  btnStyle =
+                    'bg-[var(--qa-inset)]/35 border-[var(--qa-border)]/40 text-[var(--qa-muted)] opacity-30 line-through cursor-not-allowed';
+                  badgeStyle = 'bg-[var(--qa-card)] text-[var(--qa-muted)] opacity-50';
                 }
 
                 return (
                   <button
                     key={idx}
                     type="button"
-                    disabled={isRevealed}
+                    disabled={isRevealed || isEliminated}
                     onClick={() => handleSelectOption(idx)}
+                    data-option-idx={idx}
                     className={`min-h-[46px] sm:min-h-[54px] px-3 py-2 rounded-xl sm:rounded-2xl border text-start flex items-center justify-between gap-2 transition-all active:scale-[0.99] ${btnStyle}`}
                   >
                     <span className="flex items-center gap-2.5 min-w-0">

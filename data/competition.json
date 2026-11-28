@@ -20,10 +20,76 @@
       "countryCode": "GA",
       "avatar": "panther",
       "bestGameScore": 2284,
-      "totalScore": 20953,
-      "weeklyScore": 20953,
+      "totalScore": 24281,
+      "weeklyScore": 24281,
       "streak": 1,
-      "updatedAt": 1795531424199
+      "updatedAt": 1795810514518
+    },
+    {
+      "id": "cp6mSLRGwvYowBO0EESjm0ExUM62",
+      "name": "Francky",
+      "countryCode": "CM",
+      "avatar": "lion",
+      "bestGameScore": 0,
+      "totalScore": 0,
+      "weeklyScore": 0,
+      "streak": 0,
+      "updatedAt": 1795808968096
+    },
+    {
+      "id": "ipT9OLKedPS6SnexZ7QbSiISYmx2",
+      "name": "Francky",
+      "countryCode": "CM",
+      "avatar": "lion",
+      "bestGameScore": 0,
+      "totalScore": 0,
+      "weeklyScore": 0,
+      "streak": 0,
+      "updatedAt": 1795809039389
+    },
+    {
+      "id": "U2rpqMzWI6WqE6he8hrbuSDPuBb2",
+      "name": "Francky",
+      "countryCode": "CM",
+      "avatar": "lion",
+      "bestGameScore": 0,
+      "totalScore": 0,
+      "weeklyScore": 0,
+      "streak": 0,
+      "updatedAt": 1795809082688
+    },
+    {
+      "id": "BWW8MnzpSIOmiSML3EN6vAPwj872",
+      "name": "TestUser",
+      "countryCode": "GA",
+      "avatar": "lion",
+      "bestGameScore": 500,
+      "totalScore": 1200,
+      "weeklyScore": 500,
+      "streak": 2,
+      "updatedAt": 1795809199314
+    },
+    {
+      "id": "4XraUz2lIJhx8Zu321X17qTac4F2",
+      "name": "Francky",
+      "countryCode": "CM",
+      "avatar": "lion",
+      "bestGameScore": 0,
+      "totalScore": 0,
+      "weeklyScore": 0,
+      "streak": 0,
+      "updatedAt": 1795810685445
+    },
+    {
+      "id": "wt4nRsYh8LOGSpySn00yjhMNkLY2",
+      "name": "Francky",
+      "countryCode": "CM",
+      "avatar": "lion",
+      "bestGameScore": 0,
+      "totalScore": 0,
+      "weeklyScore": 0,
+      "streak": 0,
+      "updatedAt": 1795810730597
     }
   ],
   "processedSubmissionIds": [

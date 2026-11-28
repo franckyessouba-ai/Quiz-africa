@@ -5,7 +5,10 @@ import {
   QuizCategory,
   QuizQuestion,
 } from '../types/quiz';
-import { getTargetDifficultiesForLevel } from '../utils/levelSystem';
+import {
+  getLevelModeTargetDifficulties,
+  getTargetDifficultiesForLevel,
+} from '../utils/levelSystem';
 import { balanceQuestionSet } from '../utils/questionShuffle';
 import { AFRICAN_NEWS_QUESTIONS } from './africanNewsQuestions';
 import { buildCoreCountryQuestions } from './bank/coreCountryBuilder';
@@ -307,6 +310,78 @@ export function selectNormalGameQuestions(
 
   return {
     questions: balanceQuestionSet(shuffleArray(selected).slice(0, 10)),
+    newlyExhaustedPool,
+  };
+}
+
+export function selectLevelGameQuestions(
+  levelNumber: number,
+  seenQuestionIds: string[],
+  customPool?: QuizQuestion[]
+): { questions: QuizQuestion[]; newlyExhaustedPool: boolean } {
+  const safeLevel = Math.max(1, Math.floor(levelNumber || 1));
+  const seenSet = new Set(seenQuestionIds);
+  const sourceQuestions =
+    customPool && customPool.length > 0 ? customPool : ALL_QUESTIONS;
+
+  const candidatePool = sourceQuestions.filter((q) => q.category !== 'diaspora');
+  const unseen = shuffleArray(candidatePool.filter((q) => !seenSet.has(q.id)));
+  const seenFallback = shuffleArray(candidatePool.filter((q) => seenSet.has(q.id)));
+  const newlyExhaustedPool = unseen.length < 10;
+
+  const targetDifficulties = getLevelModeTargetDifficulties(safeLevel);
+  const preferHigherOnTie = safeLevel >= 5;
+
+  const selected: QuizQuestion[] = [];
+  const pickedIds = new Set<string>();
+  const usedTopics = new Set<string>();
+  const usedSubCategories = new Set<string>();
+  const usedCountries = new Set<string>();
+  const categoryCounts = new Map<QuizCategory, number>();
+
+  for (const targetDiff of targetDifficulties) {
+    const chosen =
+      pickSmartQuestion(
+        unseen,
+        targetDiff,
+        pickedIds,
+        usedTopics,
+        usedSubCategories,
+        usedCountries,
+        categoryCounts,
+        true,
+        true,
+        preferHigherOnTie
+      ) ||
+      pickSmartQuestion(
+        seenFallback,
+        targetDiff,
+        pickedIds,
+        usedTopics,
+        usedSubCategories,
+        usedCountries,
+        categoryCounts,
+        true,
+        true,
+        preferHigherOnTie
+      );
+
+    if (chosen) {
+      selected.push(chosen);
+      pickedIds.add(chosen.id);
+      usedTopics.add(getTopicSignature(chosen));
+      if (chosen.subCategory) {
+        usedSubCategories.add(chosen.subCategory);
+      }
+      if (chosen.countryCode !== 'AFRICA') {
+        usedCountries.add(chosen.countryCode);
+      }
+      categoryCounts.set(chosen.category, (categoryCounts.get(chosen.category) ?? 0) + 1);
+    }
+  }
+
+  return {
+    questions: balanceQuestionSet(selected.slice(0, 10)),
     newlyExhaustedPool,
   };
 }

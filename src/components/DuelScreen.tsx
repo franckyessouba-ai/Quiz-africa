@@ -34,6 +34,7 @@ import {
   finishFirestoreDuel,
   FirestoreDuelDiagnostic,
   FirestoreDuelRoomDoc,
+  getDuelQuestionsForRoom,
   joinFirestoreDuelRoom,
   leaveFirestoreDuelRoom,
   mapFirestoreRoomToSnapshot,
@@ -55,11 +56,21 @@ import {
   PlayerProfile,
   QuizQuestion,
 } from '../types/quiz';
+import {
+  generateAskFriendHint,
+  generateAudiencePercentages,
+  generateFiftyFiftyEliminated,
+  generateFirstLetterInfo,
+  HINT_COSTS,
+  HintType,
+  INITIAL_USED_JOKERS,
+} from '../utils/hints';
 import { getBasePointsForDifficulty, getPlayerLevelInfo } from '../utils/levelSystem';
 import { soundEngine } from '../utils/sound';
 import { AvatarBadge } from './AvatarBadge';
 import { ConfettiOverlay } from './ConfettiOverlay';
 import { DuelChatPanel } from './DuelChatPanel';
+import { HintsPanel } from './HintsPanel';
 
 interface DuelScreenProps {
   player: PlayerProfile;
@@ -124,6 +135,32 @@ export function DuelScreen({
 
   const t = getUiText(player.language);
   const [messages, setMessages] = useState<DuelChatMessage[]>([]);
+
+  const [usedJokers, setUsedJokers] = useState<Record<HintType, boolean>>({
+    ...INITIAL_USED_JOKERS,
+  });
+  const [eliminatedIndices, setEliminatedIndices] = useState<number[]>([]);
+  const [firstLetterText, setFirstLetterText] = useState<string | null>(null);
+  const [audiencePercentages, setAudiencePercentages] = useState<number[] | null>(null);
+  const [fiftyFiftyActive, setFiftyFiftyActive] = useState(false);
+  const [friendText, setFriendText] = useState<string | null>(null);
+  const [lastCostFlash, setLastCostFlash] = useState<number | null>(null);
+  const questionHintPenaltyRef = useRef(0);
+
+  const resetQuestionHints = useCallback(() => {
+    questionHintPenaltyRef.current = 0;
+    setEliminatedIndices([]);
+    setFirstLetterText(null);
+    setAudiencePercentages(null);
+    setFiftyFiftyActive(false);
+    setFriendText(null);
+    setLastCostFlash(null);
+  }, []);
+
+  const resetMatchHints = useCallback(() => {
+    setUsedJokers({ ...INITIAL_USED_JOKERS });
+    resetQuestionHints();
+  }, [resetQuestionHints]);
 
   const myUid = firebaseUser?.uid || auth.currentUser?.uid || '';
   const serverReady = diag?.status === 'connected';
@@ -191,6 +228,7 @@ export function DuelScreen({
         const uid = auth.currentUser?.uid || myUid;
         setFsRoomDoc(joinedDoc);
         setActiveFsRoomCode(joinedDoc.roomCode);
+        resetMatchHints();
         setRoom(mapFirestoreRoomToSnapshot(joinedDoc, uid, player.id));
         onClearInitialRoomCode?.();
       })
@@ -231,6 +269,7 @@ export function DuelScreen({
             (mapped.status === 'question' && prev?.status !== 'question')
           ) {
             setOptimisticChoice(null);
+            resetQuestionHints();
           }
           return mapped;
         });
@@ -380,6 +419,7 @@ export function DuelScreen({
     if (!q) return;
     const { correctIndex: _omit, ...publicQ } = q;
     setOptimisticChoice(null);
+    resetQuestionHints();
     setRoom((prev) => {
       if (!prev) return null;
       return {
@@ -536,6 +576,7 @@ export function DuelScreen({
     setFsRoomDoc(null);
     setErrorMsg('');
     setOptimisticChoice(null);
+    resetMatchHints();
     finishedHandledRef.current = '';
 
     setRoom({
@@ -616,6 +657,7 @@ export function DuelScreen({
       finishedHandledRef.current = '';
       setMessages([]);
       setIsLocalMatch(false);
+      resetMatchHints();
       setFsRoomDoc(created);
       setActiveFsRoomCode(created.roomCode);
       setRoom(mapFirestoreRoomToSnapshot(created, user.uid, player.id));
@@ -641,6 +683,7 @@ export function DuelScreen({
       finishedHandledRef.current = '';
       setMessages([]);
       setIsLocalMatch(false);
+      resetMatchHints();
       setFsRoomDoc(matched);
       setActiveFsRoomCode(matched.roomCode);
       setRoom(mapFirestoreRoomToSnapshot(matched, user.uid, player.id));
@@ -673,6 +716,7 @@ export function DuelScreen({
       finishedHandledRef.current = '';
       setMessages([]);
       setIsLocalMatch(false);
+      resetMatchHints();
       setFsRoomDoc(joined);
       setActiveFsRoomCode(joined.roomCode);
       setRoom(mapFirestoreRoomToSnapshot(joined, user.uid, player.id));
@@ -707,6 +751,7 @@ export function DuelScreen({
     setRoom(null);
     setMessages([]);
     setOptimisticChoice(null);
+    resetMatchHints();
     setErrorMsg('');
   };
 
@@ -722,20 +767,82 @@ export function DuelScreen({
     }
   };
 
+  const resolveFullActiveQuestion = (): QuizQuestion | null => {
+    if (!room) return null;
+    if (isLocalMatch) {
+      return localQuestionsRef.current[room.questionIndex] || null;
+    }
+    if (fsRoomDoc) {
+      return getDuelQuestionsForRoom(fsRoomDoc)[room.questionIndex] || null;
+    }
+    return null;
+  };
+
+  const handleUseHint = (hintType: HintType) => {
+    if (!room || room.status !== 'question') return;
+    const meParticipant = room.players.find((p) => p.id === player.id);
+    if (!meParticipant || meParticipant.hasAnsweredCurrent || optimisticChoice !== null) return;
+    if (usedJokers[hintType]) return;
+
+    const fullQuestion = resolveFullActiveQuestion();
+    if (!fullQuestion) return;
+
+    soundEngine.playClick();
+    setUsedJokers((prev) => ({ ...prev, [hintType]: true }));
+
+    const cost = HINT_COSTS[hintType];
+    questionHintPenaltyRef.current += cost;
+    setLastCostFlash(cost);
+
+    if (hintType === 'firstLetter') {
+      const { firstChar, length } = generateFirstLetterInfo(
+        fullQuestion.options[fullQuestion.correctIndex]?.[player.language] || '',
+        player.language
+      );
+      setFirstLetterText(t.hintFirstLetterMsg(firstChar, length));
+    } else if (hintType === 'fiftyFifty') {
+      const eliminated = generateFiftyFiftyEliminated(
+        fullQuestion.correctIndex,
+        fullQuestion.id
+      );
+      setEliminatedIndices(eliminated);
+      setFiftyFiftyActive(true);
+    } else if (hintType === 'audience') {
+      const pcts = generateAudiencePercentages(
+        fullQuestion.correctIndex,
+        fullQuestion.difficulty || 1,
+        eliminatedIndices,
+        fullQuestion.id
+      );
+      setAudiencePercentages(pcts);
+    } else if (hintType === 'askFriend') {
+      const { friendName, letter, clue } = generateAskFriendHint(
+        fullQuestion,
+        player.language
+      );
+      setFriendText(t.hintAskFriendMsg(friendName, letter, clue));
+    }
+  };
+
   const handleAnswer = (optionIndex: number) => {
     if (!room || room.status !== 'question') return;
     const me = room.players.find((p) => p.id === player.id);
     if (!me || me.hasAnsweredCurrent || optimisticChoice !== null) return;
+    if (eliminatedIndices.includes(optionIndex)) return;
 
     soundEngine.playClick();
     setOptimisticChoice(optionIndex);
+    const activePenalty = questionHintPenaltyRef.current;
 
     if (isLocalMatch) {
       const q = localQuestionsRef.current[room.questionIndex];
       if (!q) return;
       const remSec = Math.max(0, Math.ceil((room.questionEndsAt - Date.now()) / 1000));
       const basePts = getBasePointsForDifficulty(q.difficulty || 1);
-      const earned = optionIndex === q.correctIndex ? basePts + Math.round(remSec * 2) : 0;
+      const earned =
+        optionIndex === q.correctIndex
+          ? Math.max(0, basePts + Math.round(remSec * 2) - activePenalty)
+          : 0;
 
       setRoom((prev) => {
         if (!prev || prev.status !== 'question') return prev;
@@ -760,7 +867,7 @@ export function DuelScreen({
 
     const uid = auth.currentUser?.uid || myUid;
     if (fsRoomDoc && uid) {
-      void submitFirestoreDuelAnswer(fsRoomDoc, uid, optionIndex);
+      void submitFirestoreDuelAnswer(fsRoomDoc, uid, optionIndex, activePenalty);
     }
   };
 
@@ -1215,6 +1322,7 @@ export function DuelScreen({
                 setRoom(null);
                 setMessages([]);
                 setOptimisticChoice(null);
+                resetMatchHints();
               }}
               className="w-full min-h-[56px] px-6 rounded-2xl bg-gradient-to-r from-[#009E49] to-[#00B253] text-white font-display font-extrabold text-lg flex items-center justify-center gap-2.5"
             >
@@ -1230,6 +1338,7 @@ export function DuelScreen({
                 setActiveFsRoomCode(null);
                 setFsRoomDoc(null);
                 setIsLocalMatch(false);
+                resetMatchHints();
                 onBack();
               }}
               className="w-full min-h-[48px] px-5 rounded-2xl bg-[var(--qa-inset)] border border-[var(--qa-border)] text-[var(--qa-text-soft)] font-bold text-sm flex items-center justify-center gap-2"
@@ -1361,11 +1470,24 @@ export function DuelScreen({
           {q.prompt[player.language]}
         </h2>
 
+        <HintsPanel
+          language={player.language}
+          usedJokers={usedJokers}
+          disabled={myAnswered || isRevealed}
+          firstLetterText={firstLetterText}
+          audiencePercentages={audiencePercentages}
+          fiftyFiftyActive={fiftyFiftyActive}
+          friendText={friendText}
+          lastCostFlash={lastCostFlash}
+          onUseHint={handleUseHint}
+        />
+
         <div className="grid grid-cols-1 gap-3">
           {q.options.map((opt, idx) => {
             const isCorrect = isRevealed && idx === room.revealedCorrectIndex;
             const isMyPick = myChosenIndex === idx;
             const isOppPick = isRevealed && opponent?.lastOptionIndex === idx;
+            const isEliminated = !isRevealed && eliminatedIndices.includes(idx);
 
             let btnStyle =
               'bg-[var(--qa-inset)] border-[var(--qa-border)] text-[var(--qa-text)] hover:border-[#F5B700]';
@@ -1382,6 +1504,10 @@ export function DuelScreen({
                 btnStyle = 'bg-[var(--qa-inset)]/60 border-[var(--qa-border)] text-[var(--qa-muted)] opacity-75';
                 badgeStyle = 'bg-[var(--qa-card)] text-[var(--qa-muted)]';
               }
+            } else if (isEliminated) {
+              btnStyle =
+                'bg-[var(--qa-inset)]/35 border-[var(--qa-border)]/40 text-[var(--qa-muted)] opacity-30 line-through cursor-not-allowed';
+              badgeStyle = 'bg-[var(--qa-card)] text-[var(--qa-muted)] opacity-50';
             } else if (isMyPick) {
               btnStyle = 'bg-[#0072CE]/20 border-[#0072CE] text-[var(--qa-text)]';
               badgeStyle = 'bg-[#0072CE] text-white';
@@ -1391,8 +1517,9 @@ export function DuelScreen({
               <button
                 key={idx}
                 type="button"
-                disabled={myAnswered || isRevealed}
+                disabled={myAnswered || isRevealed || isEliminated}
                 onClick={() => handleAnswer(idx)}
+                data-option-idx={idx}
                 className={`min-h-[58px] px-4 py-3 rounded-2xl border text-start flex items-center justify-between gap-3 transition-all ${btnStyle}`}
               >
                 <span className="flex items-center gap-3 min-w-0">

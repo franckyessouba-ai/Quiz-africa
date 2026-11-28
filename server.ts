@@ -427,8 +427,7 @@ async function startServer() {
   const httpServer = http.createServer(app);
 
   if (process.env.NODE_ENV !== 'production') {
-    if (process.env.DISABLE_HMR === 'true') {
-      const cleanupSwScript = `
+    const cleanupSwScript = `
 self.addEventListener('install', () => { self.skipWaiting(); });
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
@@ -439,19 +438,14 @@ self.addEventListener('activate', (event) => {
     try {
       await self.registration.unregister();
     } catch {}
-    const clients = await self.clients.matchAll({ type: 'window' });
-    for (const client of clients) {
-      client.navigate(client.url);
-    }
   })());
 });
 `.trim();
-      app.get(['/dev-sw.js', '/sw.js'], (_req, res) => {
-        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-        res.send(cleanupSwScript);
-      });
-    }
+    app.get(['/dev-sw.js', '/sw.js'], (_req, res) => {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.send(cleanupSwScript);
+    });
 
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({

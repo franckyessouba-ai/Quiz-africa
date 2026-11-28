@@ -414,7 +414,16 @@ export async function joinFirestoreDuelRoom(
   try {
     snap = await getDocFromServer(roomRef);
   } catch (error) {
-    handleFirestoreError(error, OperationType.GET, roomPath);
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes('unavailable') || msg.includes('offline') || msg.includes('The operation could not be completed')) {
+      try {
+        snap = await getDoc(roomRef);
+      } catch (fallbackErr) {
+        handleFirestoreError(fallbackErr, OperationType.GET, roomPath);
+      }
+    } else {
+      handleFirestoreError(error, OperationType.GET, roomPath);
+    }
   }
 
   if (!snap.exists()) {
@@ -596,7 +605,8 @@ export async function revealFirestoreDuelQuestion(rawRoomCode: string): Promise<
 export async function submitFirestoreDuelAnswer(
   roomDoc: FirestoreDuelRoomDoc,
   myUid: string,
-  optionIndex: number
+  optionIndex: number,
+  hintPenalty = 0
 ): Promise<void> {
   if (roomDoc.status !== 'question') return;
   if (optionIndex < 0 || optionIndex > 3) return;
@@ -608,7 +618,10 @@ export async function submitFirestoreDuelAnswer(
   const isCorrect = optionIndex === q.correctIndex;
   const remSec = Math.max(0, Math.ceil(((roomDoc.questionEndsAtMs || Date.now()) - Date.now()) / 1000));
   const basePts = getBasePointsForDifficulty(q.difficulty || 1);
-  const earned = isCorrect ? Math.min(5000, basePts + Math.round(remSec * 2)) : 0;
+  const safePenalty = Math.max(0, Math.round(hintPenalty));
+  const earned = isCorrect
+    ? Math.max(0, Math.min(5000, basePts + Math.round(remSec * 2) - safePenalty))
+    : 0;
 
   const roomRef = doc(db, 'duels', roomDoc.roomCode);
   const roomPath = `duels/${roomDoc.roomCode}`;

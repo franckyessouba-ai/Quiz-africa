@@ -22,6 +22,7 @@ import {
   getPreviousDateKey,
   mergeQuestionPools,
   selectDailyChallengeQuestions,
+  selectLevelGameQuestions,
   selectNormalGameQuestions,
 } from './data/questionBank';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
@@ -31,11 +32,14 @@ import {
   flushPendingScores,
   getPendingScoreCount,
   loadCachedLeaderboard,
+  loadLevelSeenQuestionIds,
   loadOfflineQuestions,
   loadPhoneNewsQuestions,
+  loadProfileFromIdb,
   loadSeenQuestionIds,
   loadStoredProfile,
   persistQuestionsOffline,
+  saveLevelSeenQuestionIds,
   saveSeenQuestionIds,
   saveStoredProfile,
   submitScoreToServer,
@@ -130,6 +134,7 @@ export default function App() {
     loadCachedLeaderboard()
   );
   const [seenIds, setSeenIds] = useState<string[]>(() => loadSeenQuestionIds());
+  const [levelSeenIds, setLevelSeenIds] = useState<string[]>(() => loadLevelSeenQuestionIds());
   const [pendingSyncCount, setPendingSyncCount] = useState<number>(() =>
     getPendingScoreCount()
   );
@@ -142,6 +147,7 @@ export default function App() {
   // Active match state
   const [activePlayScope, setActivePlayScope] = useState<PlayScope>({ type: 'all' });
   const [activeCategory, setActiveCategory] = useState<CategorySelection>('mixed');
+  const [activeGameLevel, setActiveGameLevel] = useState<number>(1);
   const [activeQuestions, setActiveQuestions] = useState<QuizQuestion[]>([]);
   const [lastResult, setLastResult] = useState<GameResultPayload | null>(null);
   const [todayNewsQuestions, setTodayNewsQuestions] = useState<QuizQuestion[]>([]);
@@ -157,6 +163,25 @@ export default function App() {
     const timer = setTimeout(() => setShowSplash(false), 1600);
     return () => clearTimeout(timer);
   }, [showSplash]);
+
+  // Recover player profile from IndexedDB if localStorage was cleared/isolated offline
+  useEffect(() => {
+    if (initialState.player) return;
+    let active = true;
+    loadProfileFromIdb()
+      .then((idbProfile) => {
+        if (!active || !idbProfile) return;
+        const evaluated = evaluateDailyStreakFreshness(idbProfile);
+        saveStoredProfile(evaluated);
+        setPlayer(evaluated);
+        setPreviewLang(evaluated.language);
+        setScreen(pendingDuelCode ? 'duel' : 'home');
+      })
+      .catch(() => null);
+    return () => {
+      active = false;
+    };
+  }, [initialState.player, pendingDuelCode]);
 
   // Sync HTML dir & lang attributes (RTL for Arabic)
   useEffect(() => {
@@ -284,6 +309,8 @@ export default function App() {
       dailyHistory: {},
       gamesPlayed: 0,
       gamesWon: 0,
+      levelModeLevel: 1,
+      levelModeBestLevel: 1,
     };
     saveStoredProfile(newProfile);
     setPlayer(newProfile);
@@ -365,6 +392,43 @@ export default function App() {
     setScreen('playingNormal');
   };
 
+  const handleStartLevelGame = async (overrideLevel?: number) => {
+    if (!player) return;
+    const levelToPlay = Math.max(
+      1,
+      Math.floor(overrideLevel ?? player.levelModeLevel ?? 1)
+    );
+
+    const todayKey = getLocalDateKey();
+    let basePool: QuizQuestion[] = ALL_QUESTIONS;
+    if (!isOnline) {
+      basePool = (await loadOfflineQuestions().catch(() => null)) || ALL_QUESTIONS;
+    }
+
+    const savedNews =
+      phoneNewsQuestions.length > 0
+        ? phoneNewsQuestions
+        : await loadPhoneNewsQuestions(todayKey).catch(() => []);
+    const expandedPool = mergeQuestionPools(basePool, AFRICAN_NEWS_QUESTIONS, savedNews);
+
+    const { questions, newlyExhaustedPool } = selectLevelGameQuestions(
+      levelToPlay,
+      levelSeenIds,
+      expandedPool
+    );
+    const nextLevelSeen = newlyExhaustedPool
+      ? questions.map((q) => q.id)
+      : Array.from(new Set([...levelSeenIds, ...questions.map((q) => q.id)]));
+    setLevelSeenIds(nextLevelSeen);
+    saveLevelSeenQuestionIds(nextLevelSeen);
+
+    setActiveGameLevel(levelToPlay);
+    setActivePlayScope({ type: 'all' });
+    setActiveCategory('mixed');
+    setActiveQuestions(questions);
+    setScreen('playingLevels');
+  };
+
   const handleStartDailyChallenge = async () => {
     if (!player) return;
     const todayKey = getLocalDateKey();
@@ -402,8 +466,19 @@ export default function App() {
 
     const previousLevel = getPlayerLevelInfo(player.totalScore, player.language).level;
 
-    if (result.mode === 'normal') {
-      const isDiaspora = result.category === 'diaspora';
+    if (result.mode === 'normal' || result.mode === 'levels') {
+      const isDiaspora = result.mode === 'normal' && result.category === 'diaspora';
+      const currentStage = Math.max(
+        1,
+        Math.floor(result.playedGameLevel || player.levelModeLevel || 1)
+      );
+      const nextStage =
+        result.mode === 'levels'
+          ? result.won
+            ? currentStage + 1
+            : currentStage
+          : Math.max(1, Math.floor(player.levelModeLevel || 1));
+
       const updatedProfile: PlayerProfile = {
         ...player,
         bestGameScore: Math.max(player.bestGameScore, result.score),
@@ -417,6 +492,8 @@ export default function App() {
           : player.bestDiasporaScore || 0,
         gamesPlayed: player.gamesPlayed + 1,
         gamesWon: player.gamesWon + (result.won ? 1 : 0),
+        levelModeLevel: nextStage,
+        levelModeBestLevel: Math.max(player.levelModeBestLevel || 1, nextStage),
       };
       const newLevel = getPlayerLevelInfo(updatedProfile.totalScore, updatedProfile.language).level;
       saveStoredProfile(updatedProfile);
@@ -425,6 +502,8 @@ export default function App() {
         ...result,
         previousLevel,
         newLevel,
+        playedGameLevel: result.mode === 'levels' ? currentStage : undefined,
+        nextGameLevel: result.mode === 'levels' ? nextStage : undefined,
       });
       setScreen('result');
 
@@ -602,11 +681,13 @@ export default function App() {
     );
   }
 
-  const isPlaying = screen === 'playingNormal' || screen === 'playingDaily';
+  const isPlaying =
+    screen === 'playingNormal' || screen === 'playingLevels' || screen === 'playingDaily';
   const isFixedViewportScreen =
     screen === 'home' ||
     screen === 'setupGame' ||
     screen === 'playingNormal' ||
+    screen === 'playingLevels' ||
     screen === 'playingDaily' ||
     screen === 'dailyHub' ||
     screen === 'leaderboard' ||
@@ -644,6 +725,9 @@ export default function App() {
           player={player}
           leaderboard={leaderboard}
           onPlayClick={() => setScreen('setupGame')}
+          onLevelsClick={() => {
+            void handleStartLevelGame();
+          }}
           onDailyClick={() => {
             const evaluated = evaluateDailyStreakFreshness(player);
             if (evaluated !== player) {
@@ -683,6 +767,21 @@ export default function App() {
         />
       )}
 
+      {screen === 'playingLevels' && (
+        <QuizArena
+          key={`levels-${activeGameLevel}-${activeQuestions[0]?.id ?? 'q'}`}
+          mode="levels"
+          language={player.language}
+          playScope={{ type: 'all' }}
+          category="mixed"
+          questions={activeQuestions}
+          bestGameScore={player.bestGameScore}
+          gameLevel={activeGameLevel}
+          onFinish={handleMatchFinished}
+          onQuit={() => setScreen('home')}
+        />
+      )}
+
       {screen === 'dailyHub' && (
         <DailyChallengeHub
           player={player}
@@ -709,6 +808,16 @@ export default function App() {
           player={player}
           result={lastResult}
           onReplayNormal={() => setScreen('setupGame')}
+          onNextLevel={() => {
+            void handleStartLevelGame(
+              lastResult.nextGameLevel ?? (player.levelModeLevel || 1)
+            );
+          }}
+          onRetryLevel={() => {
+            void handleStartLevelGame(
+              lastResult.playedGameLevel ?? (player.levelModeLevel || 1)
+            );
+          }}
           onGoHome={() => setScreen('home')}
           onOpenAbout={() => setShowAboutSelah(true)}
         />

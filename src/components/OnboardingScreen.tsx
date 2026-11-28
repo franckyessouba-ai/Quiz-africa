@@ -78,9 +78,12 @@ export function OnboardingScreen({
       <div className="h-[4px] w-full panafrica-stripe" />
       {!isOnline && (
         <div className="bg-[#F5B700] text-[#0A100D] px-3 py-1.5 text-center">
-          <div className="max-w-2xl mx-auto flex items-center justify-center gap-2 text-xs font-extrabold">
-            <WifiOff className="w-3.5 h-3.5 shrink-0" />
-            <span>{t.offlineModeBanner}</span>
+          <div className="max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-xs font-extrabold">
+            <span className="inline-flex items-center gap-1.5">
+              <WifiOff className="w-3.5 h-3.5 shrink-0" />
+              <span>{t.offlineModeBanner}</span>
+            </span>
+            <span className="font-semibold text-[11px] opacity-90">{t.offlineModeDesc}</span>
           </div>
         </div>
       )}

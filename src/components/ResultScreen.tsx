@@ -1,10 +1,12 @@
 import {
   ArrowLeft,
+  ArrowRight,
   Award,
   Check,
   Crown,
   Flame,
   Home,
+  Layers,
   MessageCircle,
   RotateCcw,
   Share2,
@@ -25,6 +27,8 @@ interface ResultScreenProps {
   player: PlayerProfile;
   result: GameResultPayload;
   onReplayNormal: () => void;
+  onNextLevel?: () => void;
+  onRetryLevel?: () => void;
   onGoHome: () => void;
   onOpenAbout?: () => void;
 }
@@ -33,6 +37,8 @@ export function ResultScreen({
   player,
   result,
   onReplayNormal,
+  onNextLevel,
+  onRetryLevel,
   onGoHome,
   onOpenAbout,
 }: ResultScreenProps) {
@@ -141,13 +147,17 @@ export function ResultScreen({
         <div className="flex flex-col items-center gap-3">
           <AvatarBadge avatarId={player.avatar} size="xl" />
 
-          {result.mode === 'normal' ? (
+          {result.mode === 'normal' || result.mode === 'levels' ? (
             <h1
               className={`font-display font-extrabold text-2xl sm:text-4xl tracking-tight ${
                 result.won ? 'text-[var(--qa-green-text)]' : 'text-[#D92B2B]'
               }`}
             >
-              {result.won ? t.wonTitle : t.lostTitle}
+              {result.mode === 'levels' && result.won && result.playedGameLevel
+                ? t.levelClearedBanner(result.playedGameLevel)
+                : result.won
+                  ? t.wonTitle
+                  : t.lostTitle}
             </h1>
           ) : (
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl bg-[#F5B700]/15 border border-[#F5B700]/55 text-[var(--qa-gold-text)] font-display font-extrabold text-lg">
@@ -159,7 +169,7 @@ export function ResultScreen({
           )}
         </div>
 
-        {result.mode === 'normal' ? (
+        {result.mode === 'normal' || result.mode === 'levels' ? (
           <p className="font-display font-bold text-lg sm:text-2xl text-[var(--qa-text)]">
             {result.won || result.score > 0
               ? t.bravoScore(player.name, result.score)
@@ -175,6 +185,17 @@ export function ResultScreen({
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[var(--qa-inset)] border border-[var(--qa-border)] text-sm font-bold text-[var(--qa-text-soft)]">
             <span className="text-[var(--qa-muted)]">{t.playedOnLabel} :</span>
             <span className="text-[var(--qa-text)]">{playCountryLabel}</span>
+          </div>
+        )}
+
+        {result.mode === 'levels' && result.playedGameLevel && (
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#009E49]/15 border border-[#22C55E]/50 text-sm font-extrabold text-[var(--qa-green-text)]">
+            <Layers className="w-4 h-4 text-[#F5B700]" />
+            <span>
+              {result.won && result.nextGameLevel
+                ? t.levelUnlockedHint(result.nextGameLevel)
+                : t.levelStageBadge(result.playedGameLevel)}
+            </span>
           </div>
         )}
 
@@ -207,7 +228,7 @@ export function ResultScreen({
           </div>
         </div>
 
-        {result.mode === 'normal' ? (
+        {result.mode === 'normal' || result.mode === 'levels' ? (
           <div className="rounded-2xl bg-gradient-to-r from-[#009E49]/15 via-[#F5B700]/15 to-[#0072CE]/15 border border-[#F5B700]/45 p-4 flex items-center justify-center gap-3">
             {result.score >= 800 ? (
               <Crown className="w-7 h-7 text-[var(--qa-gold-text)] shrink-0" />
@@ -280,6 +301,33 @@ export function ResultScreen({
             >
               <RotateCcw className="w-5 h-5" />
               <span>{t.replayBtn}</span>
+            </button>
+          )}
+
+          {result.mode === 'levels' && (
+            <button
+              type="button"
+              onClick={() => {
+                soundEngine.playClick();
+                if (result.won) {
+                  onNextLevel?.();
+                } else {
+                  onRetryLevel?.();
+                }
+              }}
+              className="w-full min-h-[56px] px-6 rounded-2xl bg-gradient-to-r from-[#009E49] to-[#00B253] hover:brightness-110 active:scale-[0.98] text-white font-display font-extrabold text-lg flex items-center justify-center gap-2.5 shadow-lg transition-all"
+            >
+              {result.won ? (
+                <>
+                  <span>{t.nextLevelBtn(result.nextGameLevel ?? (result.playedGameLevel || 1) + 1)}</span>
+                  <ArrowRight className="w-5 h-5 text-[#F5B700]" />
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="w-5 h-5" />
+                  <span>{t.retryLevelBtn(result.playedGameLevel ?? 1)}</span>
+                </>
+              )}
             </button>
           )}
 

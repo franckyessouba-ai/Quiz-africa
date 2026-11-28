@@ -12,12 +12,14 @@ import {
   getDocFromServer,
   getDocs,
   getFirestore,
+  initializeFirestore,
   limit,
   orderBy,
   query,
   serverTimestamp,
   setDoc,
   where,
+  type Firestore,
   type Timestamp,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -25,7 +27,21 @@ import type { AvatarId, Language, PlayerProfile } from '../types/quiz';
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+function createFirestoreInstance(): Firestore {
+  try {
+    return initializeFirestore(
+      app,
+      {
+        experimentalForceLongPolling: true,
+      },
+      firebaseConfig.firestoreDatabaseId
+    );
+  } catch {
+    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  }
+}
+
+export const db = createFirestoreInstance();
 export const auth = getAuth(app);
 
 // Automatically sign in anonymously on boot if not already signed in
@@ -90,6 +106,7 @@ async function testConnection(isRetry = false) {
     return;
   }
   try {
+    await ensureFirebaseUser(5000);
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);

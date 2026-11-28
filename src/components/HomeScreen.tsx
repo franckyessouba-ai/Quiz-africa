@@ -1,4 +1,4 @@
-import { CalendarDays, Crown, Play, Swords, Trophy } from 'lucide-react';
+import { CalendarDays, Crown, Layers, Play, Swords, Trophy } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { HOME_BACKDROP_IMAGE, TROPHY_CREST_IMAGE } from '../data/avatars';
@@ -13,6 +13,7 @@ interface HomeScreenProps {
   player: PlayerProfile;
   leaderboard: LeaderboardResponse | null;
   onPlayClick: () => void;
+  onLevelsClick: () => void;
   onDailyClick: () => void;
   onDuelClick: () => void;
   onLeaderboardClick: () => void;
@@ -35,6 +36,7 @@ export function HomeScreen({
   player,
   leaderboard,
   onPlayClick,
+  onLevelsClick,
   onDailyClick,
   onDuelClick,
   onLeaderboardClick,
@@ -48,6 +50,7 @@ export function HomeScreen({
   const t = getUiText(player.language);
   const todayKey = getLocalDateKey();
   const dailyPlayedToday = Boolean(player.dailyHistory[todayKey]);
+  const currentLevelMode = Math.max(1, Math.floor(player.levelModeLevel || 1));
 
   useEffect(() => {
     if (!dailyPlayedToday) return;
@@ -57,10 +60,10 @@ export function HomeScreen({
     return () => clearInterval(timer);
   }, [dailyPlayedToday]);
 
-  const worldRank = leaderboard?.playerRanks.worldRank ?? null;
-  const worldTotal = leaderboard?.playerRanks.worldTotal ?? null;
-  const weeklyRank = leaderboard?.playerRanks.weeklyRank ?? null;
-  const weeklyTotal = leaderboard?.playerRanks.weeklyTotal ?? null;
+  const worldRank = leaderboard?.playerRanks?.worldRank ?? null;
+  const worldTotal = leaderboard?.playerRanks?.worldTotal ?? null;
+  const weeklyRank = leaderboard?.playerRanks?.weeklyRank ?? null;
+  const weeklyTotal = leaderboard?.playerRanks?.weeklyTotal ?? null;
   const levelInfo = getPlayerLevelInfo(player.totalScore, player.language);
 
   return (
@@ -249,47 +252,56 @@ export function HomeScreen({
             </div>
           </motion.button>
 
-          {/* 5. COMPÉTITION DE LA SEMAINE (Full-width feature banner matching screenshot) */}
+          {/* 5. MODE NIVEAUX (Progression infinie) */}
           <motion.button
-            whileHover={{ scale: 1.01, y: -1 }}
-            whileTap={{ scale: 0.985 }}
+            whileHover={{ scale: 1.015, y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            type="button"
+            onClick={() => {
+              soundEngine.playClick();
+              onLevelsClick();
+            }}
+            className="group min-h-[62px] sm:min-h-[72px] px-3 py-2.5 rounded-2xl bg-gradient-to-br from-[#166534] to-[#0F3D24] border border-[#22C55E]/55 hover:border-[#F5B700]/80 text-start shadow-xl flex items-center gap-2.5 sm:gap-3 transition-all backdrop-blur-sm"
+          >
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F5B700]/20 border border-[#F5B700]/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <Layers className="w-5 h-5 text-[#F5B700]" />
+            </div>
+            <div className="min-w-0">
+              <span className="block font-display font-extrabold text-sm sm:text-base text-white leading-tight truncate">
+                {t.modeLevelsTitle}
+              </span>
+              <span className="block text-[11px] sm:text-xs text-[#D1FAE5] font-semibold font-mono-num truncate mt-0.5">
+                {t.modeLevelsSub(currentLevelMode)}
+              </span>
+            </div>
+          </motion.button>
+
+          {/* 6. COMPÉTITION DE LA SEMAINE */}
+          <motion.button
+            whileHover={{ scale: 1.015, y: -1 }}
+            whileTap={{ scale: 0.98 }}
             type="button"
             onClick={() => {
               soundEngine.playClick();
               onWeeklyClick();
             }}
-            className="group col-span-2 min-h-[60px] sm:min-h-[70px] px-3.5 py-2 rounded-2xl bg-[#14231B]/95 border border-[#F5B700]/55 hover:border-[#F5B700] text-start shadow-xl flex items-center justify-between gap-3 transition-all backdrop-blur-sm"
+            className="group min-h-[62px] sm:min-h-[72px] px-3 py-2.5 rounded-2xl bg-[#14231B]/95 border border-[#F5B700]/55 hover:border-[#F5B700] text-start shadow-xl flex items-center gap-2.5 sm:gap-3 transition-all backdrop-blur-sm"
           >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F5B700]/15 border border-[#F5B700]/45 flex items-center justify-center shrink-0">
-                <Crown className="w-5 h-5 text-[#F5B700]" />
-              </div>
-              <div className="min-w-0">
-                <span className="block font-display font-extrabold text-sm sm:text-base text-[#F5B700] leading-tight truncate">
-                  {t.btnWeekly}
-                </span>
-                <span className="block text-[11px] sm:text-xs text-[#C7D7CE] font-medium font-mono-num truncate mt-0.5">
-                  {weeklyRank && weeklyTotal
-                    ? `${player.weeklyScore} ${t.ptsShort} · ${t.rankOfTotal(
-                        formatOrdinal(weeklyRank, player.language),
-                        weeklyTotal
-                      )}`
-                    : t.btnWeeklyDesc}
-                </span>
-              </div>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F5B700]/15 border border-[#F5B700]/45 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <Crown className="w-5 h-5 text-[#F5B700]" />
             </div>
-
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden border border-[#F5B700]/75 bg-[#0A100D] shrink-0 group-hover:scale-105 transition-transform shadow">
-              {!crestError ? (
-                <img
-                  src={TROPHY_CREST_IMAGE}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-xl">👑</div>
-              )}
+            <div className="min-w-0">
+              <span className="block font-display font-extrabold text-sm sm:text-base text-[#F5B700] leading-tight truncate">
+                {t.btnWeekly}
+              </span>
+              <span className="block text-[11px] sm:text-xs text-[#C7D7CE] font-medium font-mono-num truncate mt-0.5">
+                {weeklyRank && weeklyTotal
+                  ? `${player.weeklyScore} ${t.ptsShort} · ${t.rankOfTotal(
+                      formatOrdinal(weeklyRank, player.language),
+                      weeklyTotal
+                    )}`
+                  : t.btnWeeklyDesc}
+              </span>
             </div>
           </motion.button>
         </section>

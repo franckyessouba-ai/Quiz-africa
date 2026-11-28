@@ -152,6 +152,8 @@ export interface PlayerProfile {
   gamesWon: number;
   diasporaScore?: number;
   bestDiasporaScore?: number;
+  levelModeLevel?: number;
+  levelModeBestLevel?: number;
 }
 
 export interface LeaderboardEntry {
@@ -190,7 +192,7 @@ export interface LeaderboardResponse {
 }
 
 export interface GameResultPayload {
-  mode: 'normal' | 'daily';
+  mode: 'normal' | 'daily' | 'levels';
   playScope: PlayScope;
   category: CategorySelection;
   score: number;
@@ -203,6 +205,8 @@ export interface GameResultPayload {
   newStreak?: number;
   previousLevel?: number;
   newLevel?: number;
+  playedGameLevel?: number;
+  nextGameLevel?: number;
   answerLog?: AnswerLogItem[];
 }
 
@@ -212,6 +216,7 @@ export type AppScreen =
   | 'home'
   | 'setupGame'
   | 'playingNormal'
+  | 'playingLevels'
   | 'dailyHub'
   | 'playingDaily'
   | 'result'

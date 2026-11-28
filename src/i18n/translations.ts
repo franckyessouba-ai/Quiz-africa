@@ -249,6 +249,27 @@ export const UI_TEXT = {
     chatParticipantOnlyNote: 'Conversation privée entre les 2 joueurs du duel',
     chatQuickReactions: 'Réactions rapides',
     chatVerifiedBadge: 'Score vérifié côté serveur',
+    modeLevelsTitle: 'Mode Niveaux',
+    modeLevelsSub: (lvl: number) => `Niv. ${lvl} · Progressif`,
+    levelStageBadge: (lvl: number) => `Niveau ${lvl}`,
+    levelClearedBanner: (lvl: number) => `Niveau ${lvl} réussi !`,
+    levelUnlockedHint: (nextLvl: number) => `Niveau ${nextLvl} débloqué !`,
+    nextLevelBtn: (nextLvl: number) => `NIVEAU SUIVANT (${nextLvl})`,
+    retryLevelBtn: (lvl: number) => `RÉESSAYER LE NIVEAU ${lvl}`,
+    hintsBarLabel: 'Indices',
+    hintFirstLetterLabel: '1ère Lettre',
+    hintAudienceLabel: 'Public',
+    hintFiftyFiftyLabel: '50 / 50',
+    hintAskFriendLabel: 'Appel Ami',
+    hintUsedTag: 'Utilisé',
+    hintFirstLetterMsg: (letter: string, len: number) =>
+      `La bonne réponse commence par « ${letter} » (${len} caractères).`,
+    hintAudienceMsg: 'Avis du public :',
+    hintFiftyFiftyMsg: '50/50 activé : 2 mauvaises réponses éliminées !',
+    hintAskFriendMsg: (friendName: string, letter: string, clue: string) =>
+      clue
+        ? `${friendName} : « Je mise sur ${letter} ! ${clue} »`
+        : `${friendName} : « Je suis presque sûr que c'est la réponse ${letter} ! »`,
   },
   en: {
     appTitle: 'QUIZ AFRICA',
@@ -468,6 +489,27 @@ export const UI_TEXT = {
     chatParticipantOnlyNote: 'Private chat strictly between the 2 duel players',
     chatQuickReactions: 'Quick reactions',
     chatVerifiedBadge: 'Server-verified result',
+    modeLevelsTitle: 'Level Mode',
+    modeLevelsSub: (lvl: number) => `Lv. ${lvl} · Progressive`,
+    levelStageBadge: (lvl: number) => `Level ${lvl}`,
+    levelClearedBanner: (lvl: number) => `Level ${lvl} Cleared!`,
+    levelUnlockedHint: (nextLvl: number) => `Level ${nextLvl} Unlocked!`,
+    nextLevelBtn: (nextLvl: number) => `NEXT LEVEL (${nextLvl})`,
+    retryLevelBtn: (lvl: number) => `RETRY LEVEL ${lvl}`,
+    hintsBarLabel: 'Lifelines',
+    hintFirstLetterLabel: '1st Letter',
+    hintAudienceLabel: 'Audience',
+    hintFiftyFiftyLabel: '50 / 50',
+    hintAskFriendLabel: 'Call Friend',
+    hintUsedTag: 'Used',
+    hintFirstLetterMsg: (letter: string, len: number) =>
+      `The right answer starts with "${letter}" (${len} characters).`,
+    hintAudienceMsg: 'Audience poll:',
+    hintFiftyFiftyMsg: '50/50 active: 2 wrong answers removed!',
+    hintAskFriendMsg: (friendName: string, letter: string, clue: string) =>
+      clue
+        ? `${friendName}: "I'd go with ${letter}! ${clue}"`
+        : `${friendName}: "I'm almost certain the answer is ${letter}!"`,
   },
   es: {
     appTitle: 'QUIZ AFRICA',
@@ -687,6 +729,27 @@ export const UI_TEXT = {
     chatParticipantOnlyNote: 'Chat privado solo entre los 2 jugadores del duelo',
     chatQuickReactions: 'Reacciones rápidas',
     chatVerifiedBadge: 'Resultado verificado por el servidor',
+    modeLevelsTitle: 'Modo Niveles',
+    modeLevelsSub: (lvl: number) => `Niv. ${lvl} · Progresivo`,
+    levelStageBadge: (lvl: number) => `Nivel ${lvl}`,
+    levelClearedBanner: (lvl: number) => `¡Nivel ${lvl} superado!`,
+    levelUnlockedHint: (nextLvl: number) => `¡Nivel ${nextLvl} desbloqueado!`,
+    nextLevelBtn: (nextLvl: number) => `SIGUIENTE NIVEL (${nextLvl})`,
+    retryLevelBtn: (lvl: number) => `REINTENTAR NIVEL ${lvl}`,
+    hintsBarLabel: 'Comodines',
+    hintFirstLetterLabel: '1.ª Letra',
+    hintAudienceLabel: 'Público',
+    hintFiftyFiftyLabel: '50 / 50',
+    hintAskFriendLabel: 'Llamada',
+    hintUsedTag: 'Usado',
+    hintFirstLetterMsg: (letter: string, len: number) =>
+      `La respuesta correcta empieza por «${letter}» (${len} caracteres).`,
+    hintAudienceMsg: 'Voto del público:',
+    hintFiftyFiftyMsg: '¡50/50 activado: 2 respuestas incorrectas eliminadas!',
+    hintAskFriendMsg: (friendName: string, letter: string, clue: string) =>
+      clue
+        ? `${friendName}: «¡Apuesto por la ${letter}! ${clue}»`
+        : `${friendName}: «¡Estoy casi seguro de que es la ${letter}!»`,
   },
   pt: {
     appTitle: 'QUIZ AFRICA',
@@ -906,6 +969,27 @@ export const UI_TEXT = {
     chatParticipantOnlyNote: 'Chat privado apenas entre os 2 jogadores do duelo',
     chatQuickReactions: 'Reações rápidas',
     chatVerifiedBadge: 'Resultado verificado no servidor',
+    modeLevelsTitle: 'Modo Níveis',
+    modeLevelsSub: (lvl: number) => `Nív. ${lvl} · Progressivo`,
+    levelStageBadge: (lvl: number) => `Nível ${lvl}`,
+    levelClearedBanner: (lvl: number) => `Nível ${lvl} concluído!`,
+    levelUnlockedHint: (nextLvl: number) => `Nível ${nextLvl} desbloqueado!`,
+    nextLevelBtn: (nextLvl: number) => `PRÓXIMO NÍVEL (${nextLvl})`,
+    retryLevelBtn: (lvl: number) => `TENTAR NÍVEL ${lvl} NOVAMENTE`,
+    hintsBarLabel: 'Ajudas',
+    hintFirstLetterLabel: '1ª Letra',
+    hintAudienceLabel: 'Público',
+    hintFiftyFiftyLabel: '50 / 50',
+    hintAskFriendLabel: 'Amigo',
+    hintUsedTag: 'Usado',
+    hintFirstLetterMsg: (letter: string, len: number) =>
+      `A resposta certa começa com "${letter}" (${len} caracteres).`,
+    hintAudienceMsg: 'Opinião do público:',
+    hintFiftyFiftyMsg: '50/50 ativado: 2 respostas erradas removidas!',
+    hintAskFriendMsg: (friendName: string, letter: string, clue: string) =>
+      clue
+        ? `${friendName}: "Eu iria na ${letter}! ${clue}"`
+        : `${friendName}: "Tenho quase certeza de que é a opção ${letter}!"`,
   },
   ar: {
     appTitle: 'كويز أفريقيا',
@@ -1125,6 +1209,27 @@ export const UI_TEXT = {
     chatParticipantOnlyNote: 'محادثة خاصة بين لاعبي المبارزة فقط',
     chatQuickReactions: 'تفاعلات سريعة',
     chatVerifiedBadge: 'نتيجة موثقة من الخادم',
+    modeLevelsTitle: 'وضع المستويات',
+    modeLevelsSub: (lvl: number) => `مستوى ${lvl} · متدرج`,
+    levelStageBadge: (lvl: number) => `المستوى ${lvl}`,
+    levelClearedBanner: (lvl: number) => `تم اجتياز المستوى ${lvl}!`,
+    levelUnlockedHint: (nextLvl: number) => `تم فتح المستوى ${nextLvl}!`,
+    nextLevelBtn: (nextLvl: number) => `المستوى التالي (${nextLvl})`,
+    retryLevelBtn: (lvl: number) => `إعادة المستوى ${lvl}`,
+    hintsBarLabel: 'وسائل المساعدة',
+    hintFirstLetterLabel: 'أول حرف',
+    hintAudienceLabel: 'الجمهور',
+    hintFiftyFiftyLabel: '50 / 50',
+    hintAskFriendLabel: 'صديق',
+    hintUsedTag: 'مستخدم',
+    hintFirstLetterMsg: (letter: string, len: number) =>
+      `تبدأ الإجابة الصحيحة بحرف «${letter}» (${len} حرفاً).`,
+    hintAudienceMsg: 'تصويت الجمهور:',
+    hintFiftyFiftyMsg: 'تم تفعيل 50/50: استبعاد إجابتين خاطئتين!',
+    hintAskFriendMsg: (friendName: string, letter: string, clue: string) =>
+      clue
+        ? `${friendName}: «أرجّح الإجابة ${letter}! ${clue}»`
+        : `${friendName}: «أنا شبه متأكد أن الإجابة هي ${letter}!»`,
   },
 } as const;
 

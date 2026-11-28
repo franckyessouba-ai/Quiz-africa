@@ -155,3 +155,14 @@ export function getTargetDifficultiesForLevel(level: number): QuestionDifficulty
   if (level === 7) return [2, 3, 3, 4, 4, 4, 4, 4, 4, 4];
   return [3, 3, 4, 4, 4, 4, 4, 4, 4, 4];
 }
+
+export function getLevelModeTargetDifficulties(level: number): QuestionDifficulty[] {
+  if (level <= 1) return [1, 1, 1, 1, 1, 1, 1, 2, 2, 2];
+  if (level === 2) return [1, 1, 1, 1, 1, 2, 2, 2, 2, 3];
+  if (level === 3) return [1, 1, 1, 2, 2, 2, 2, 3, 3, 3];
+  if (level === 4) return [1, 1, 2, 2, 2, 3, 3, 3, 3, 4];
+  if (level === 5) return [1, 2, 2, 2, 3, 3, 3, 4, 4, 4];
+  if (level <= 7) return [2, 2, 2, 3, 3, 3, 4, 4, 4, 4];
+  if (level <= 9) return [2, 3, 3, 3, 4, 4, 4, 4, 4, 4];
+  return [3, 3, 4, 4, 4, 4, 4, 4, 4, 4];
+}

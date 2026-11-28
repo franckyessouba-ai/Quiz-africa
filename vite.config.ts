@@ -6,7 +6,7 @@ import {defineConfig} from 'vite';
 import {VitePWA} from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
-  const pwaDevEnabled = process.env.DISABLE_HMR !== 'true';
+  const pwaDevEnabled = false;
   return {
     define: {
       __PWA_DEV_ENABLED__: JSON.stringify(pwaDevEnabled),
@@ -62,6 +62,20 @@ export default defineConfig(() => {
           navigateFallbackDenylist: [/^\/api\//, /^\/__\//],
           runtimeCaching: [
             {
+              urlPattern: /\.(?:png|jpg|jpeg|svg|webp)$/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'app-images-cache',
+                expiration: {
+                  maxEntries: 60,
+                  maxAgeSeconds: 60 * 60 * 24 * 90,
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
               handler: 'CacheFirst',
               options: {
@@ -92,7 +106,7 @@ export default defineConfig(() => {
           ],
         },
         devOptions: {
-          enabled: process.env.DISABLE_HMR !== 'true',
+          enabled: false,
           type: 'module',
         },
       }),

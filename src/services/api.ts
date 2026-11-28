@@ -15,6 +15,7 @@ import {
 
 const PROFILE_STORAGE_KEY = 'quiz_africa_player_v1';
 const SEEN_QUESTIONS_STORAGE_KEY = 'quiz_africa_seen_questions_v1';
+const LEVEL_SEEN_QUESTIONS_STORAGE_KEY = 'quiz_africa_level_seen_questions_v1';
 const PENDING_SCORES_STORAGE_KEY = 'quiz_africa_pending_scores_v1';
 const CACHED_LEADERBOARD_STORAGE_KEY = 'quiz_africa_cached_leaderboard_v1';
 const OFFLINE_QUESTIONS_META_KEY = 'quiz_africa_offline_questions_meta_v1';
@@ -22,6 +23,21 @@ const OFFLINE_DB_NAME = 'quiz_africa_offline_db';
 const OFFLINE_STORE_NAME = 'assets';
 const OFFLINE_QUESTIONS_RECORD_KEY = 'all_questions_v4';
 const DAILY_NEWS_RECORD_KEY = 'daily_news_archive_v1';
+const PLAYER_PROFILE_IDB_KEY = 'player_profile_v1';
+
+async function fetchWithTimeout(
+  input: string,
+  init?: RequestInit,
+  timeoutMs = 4500
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 export interface PendingScoreSubmission {
   clientSubmissionId: string;
@@ -38,28 +54,117 @@ export interface PendingScoreSubmission {
   queuedAt: number;
 }
 
+function normalizeLoadedProfile(parsed: PlayerProfile): PlayerProfile {
+  const validLang =
+    parsed.language === 'fr' ||
+    parsed.language === 'en' ||
+    parsed.language === 'es' ||
+    parsed.language === 'pt' ||
+    parsed.language === 'ar'
+      ? parsed.language
+      : 'fr';
+  const validAvatar =
+    parsed.avatar === 'lion' ||
+    parsed.avatar === 'eagle' ||
+    parsed.avatar === 'panther' ||
+    parsed.avatar === 'footballer'
+      ? parsed.avatar
+      : 'lion';
+  const validCountry =
+    typeof parsed.countryCode === 'string' && parsed.countryCode.trim().length === 2
+      ? parsed.countryCode.trim().toUpperCase()
+      : 'GA';
+  const validDailyHistory =
+    parsed.dailyHistory &&
+    typeof parsed.dailyHistory === 'object' &&
+    !Array.isArray(parsed.dailyHistory)
+      ? parsed.dailyHistory
+      : {};
+
+  return {
+    ...parsed,
+    language: validLang,
+    avatar: validAvatar,
+    countryCode: validCountry,
+    dailyHistory: validDailyHistory,
+    bestGameScore: parsed.bestGameScore || 0,
+    totalScore: parsed.totalScore || 0,
+    weeklyScore: parsed.weeklyScore || 0,
+    streak: parsed.streak || 0,
+    bestStreak: parsed.bestStreak || 0,
+    lastDailyDate: parsed.lastDailyDate || null,
+    missedYesterdayNotice: Boolean(parsed.missedYesterdayNotice),
+    gamesPlayed: parsed.gamesPlayed || 0,
+    gamesWon: parsed.gamesWon || 0,
+    levelModeLevel: Math.max(1, Math.floor(parsed.levelModeLevel || 1)),
+    levelModeBestLevel: Math.max(
+      1,
+      Math.floor(parsed.levelModeBestLevel || parsed.levelModeLevel || 1)
+    ),
+  };
+}
+
 export function loadStoredProfile(): PlayerProfile | null {
   try {
     const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PlayerProfile;
     if (!parsed || !parsed.id || !parsed.name) return null;
-    return {
-      ...parsed,
-      dailyHistory: parsed.dailyHistory || {},
-      bestGameScore: parsed.bestGameScore || 0,
-      totalScore: parsed.totalScore || 0,
-      weeklyScore: parsed.weeklyScore || 0,
-      streak: parsed.streak || 0,
-      bestStreak: parsed.bestStreak || 0,
-      lastDailyDate: parsed.lastDailyDate || null,
-      missedYesterdayNotice: Boolean(parsed.missedYesterdayNotice),
-      gamesPlayed: parsed.gamesPlayed || 0,
-      gamesWon: parsed.gamesWon || 0,
-    };
+    return normalizeLoadedProfile(parsed);
   } catch {
     return null;
   }
+}
+
+async function saveProfileToIdb(profile: PlayerProfile): Promise<void> {
+  const db = await openOfflineDb();
+  if (!db) return;
+  await new Promise<void>((resolve) => {
+    try {
+      const tx = db.transaction(OFFLINE_STORE_NAME, 'readwrite');
+      const store = tx.objectStore(OFFLINE_STORE_NAME);
+      store.put(profile, PLAYER_PROFILE_IDB_KEY);
+      tx.oncomplete = () => {
+        db.close();
+        resolve();
+      };
+      tx.onerror = () => {
+        db.close();
+        resolve();
+      };
+    } catch {
+      db.close();
+      resolve();
+    }
+  });
+}
+
+export async function loadProfileFromIdb(): Promise<PlayerProfile | null> {
+  const db = await openOfflineDb();
+  if (!db) return null;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(OFFLINE_STORE_NAME, 'readonly');
+      const store = tx.objectStore(OFFLINE_STORE_NAME);
+      const req = store.get(PLAYER_PROFILE_IDB_KEY);
+      req.onsuccess = () => {
+        db.close();
+        const result = req.result as PlayerProfile | undefined;
+        if (result && result.id && result.name) {
+          resolve(normalizeLoadedProfile(result));
+        } else {
+          resolve(null);
+        }
+      };
+      req.onerror = () => {
+        db.close();
+        resolve(null);
+      };
+    } catch {
+      db.close();
+      resolve(null);
+    }
+  });
 }
 
 export function saveStoredProfile(profile: PlayerProfile): void {
@@ -68,6 +173,7 @@ export function saveStoredProfile(profile: PlayerProfile): void {
   } catch {
     // Ignore storage quota errors
   }
+  void saveProfileToIdb(profile);
 }
 
 export function loadSeenQuestionIds(): string[] {
@@ -85,6 +191,26 @@ export function saveSeenQuestionIds(ids: string[]): void {
   try {
     const unique = Array.from(new Set(ids));
     localStorage.setItem(SEEN_QUESTIONS_STORAGE_KEY, JSON.stringify(unique));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+export function loadLevelSeenQuestionIds(): string[] {
+  try {
+    const raw = localStorage.getItem(LEVEL_SEEN_QUESTIONS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLevelSeenQuestionIds(ids: string[]): void {
+  try {
+    const unique = Array.from(new Set(ids));
+    localStorage.setItem(LEVEL_SEEN_QUESTIONS_STORAGE_KEY, JSON.stringify(unique));
   } catch {
     // Ignore storage quota errors
   }
@@ -312,7 +438,7 @@ export async function fetchDailyNewsPackage(todayDateKey = getTodayDateString())
   }
 
   try {
-    const res = await fetch(`/api/daily-news?date=${encodeURIComponent(todayDateKey)}`);
+    const res = await fetchWithTimeout(`/api/daily-news?date=${encodeURIComponent(todayDateKey)}`);
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
@@ -352,7 +478,16 @@ export function loadCachedLeaderboard(): LeaderboardResponse | null {
   try {
     const raw = localStorage.getItem(CACHED_LEADERBOARD_STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as LeaderboardResponse;
+    const parsed = JSON.parse(raw) as Partial<LeaderboardResponse>;
+    if (
+      !parsed ||
+      !parsed.playerRanks ||
+      typeof parsed.playerRanks.worldRank !== 'number' ||
+      typeof parsed.playerRanks.worldTotal !== 'number'
+    ) {
+      return null;
+    }
+    return parsed as LeaderboardResponse;
   } catch {
     return null;
   }
@@ -412,7 +547,7 @@ export async function syncPlayerWithServer(
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const serverRes = await fetch('/api/player/sync', {
+    const serverRes = await fetchWithTimeout('/api/player/sync', {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -468,7 +603,7 @@ export async function fetchLeaderboard(
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
-    const res = await fetch(`/api/leaderboard?${params.toString()}`, { headers });
+    const res = await fetchWithTimeout(`/api/leaderboard?${params.toString()}`, { headers });
     if (!res.ok) return loadCachedLeaderboard();
     const data = (await res.json()) as LeaderboardResponse;
     saveCachedLeaderboard(data);
@@ -535,7 +670,7 @@ export async function submitScoreToServer(params: {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const res = await fetch('/api/score/submit', {
+    const res = await fetchWithTimeout('/api/score/submit', {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
@@ -627,7 +762,7 @@ export async function flushPendingScores(
         : item;
 
       try {
-        const res = await fetch('/api/score/submit', {
+        const res = await fetchWithTimeout('/api/score/submit', {
           method: 'POST',
           headers,
           body: JSON.stringify(mergedItem),
